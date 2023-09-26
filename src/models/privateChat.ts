@@ -26,4 +26,4 @@ const chatMessageSchema = new mongoose.Schema<ChatMessageInterface>({
     },
 });
 
-export const ChatMessage = mongoose.model<ChatMessageInterface>('ChatMessage', chatMessageSchema);
+export const PrivateMessage = mongoose.model<ChatMessageInterface>('PrivateMessage', chatMessageSchema);

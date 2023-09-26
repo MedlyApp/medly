@@ -4,4 +4,3 @@ jspm_packages/
 .env
 coverage
 yarn.lock
-package.json

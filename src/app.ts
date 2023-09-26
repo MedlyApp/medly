@@ -8,6 +8,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import http from 'http';
 import userRouter from './routes/userRoute';
+import indexRouter from './routes/indexRoute';
 dotenv.config()
 dbConnect()
 
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
 
+app.use('/', indexRouter);
 app.use('/medly/user', userRouter);
 
 

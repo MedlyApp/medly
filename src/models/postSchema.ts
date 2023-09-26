@@ -1,17 +1,7 @@
-import mongoose, { Document, ObjectId } from 'mongoose';
+import mongoose, { Schema, model, Model, Document, ObjectId } from 'mongoose';
+import { PostInterface, Comment, Repost } from "../utills/interfaces"
 
-export interface PostInterface extends Document {
-    userId: ObjectId;
-    content: string;
-    mediaUrls: string[];
-    likes: ObjectId[];
-    comments: {
-        userId: ObjectId;
-        text: string;
-    }[];
-    reposts: ObjectId[];
-    createdAt: Date;
-}
+
 
 const postSchema = new mongoose.Schema<PostInterface>({
     userId: {
@@ -22,29 +12,19 @@ const postSchema = new mongoose.Schema<PostInterface>({
         type: String,
         required: true,
     },
+    profileImage: {
+        type: String, ref: "User",
+    },
+    userFullName: { type: String, ref: "User" },
     mediaUrls: {
         type: [String],
     },
-    likes: {
-        type: [mongoose.Types.ObjectId],
+    likes: [{ type: Schema.Types.ObjectId, default: [], ref: 'User' }],
+    comments: [{ type: Schema.Types.ObjectId, default: [], ref: 'Reply' }],
+    reposts: [{
+        type: Schema.Types.ObjectId, ref: "User",
         default: [],
-    },
-    comments: [
-        {
-            userId: {
-                type: mongoose.Types.ObjectId, ref: "User",
-                required: true,
-            },
-            text: {
-                type: String,
-                required: true,
-            },
-        },
-    ],
-    reposts: {
-        type: [mongoose.Types.ObjectId], ref: "Post",
-        default: [],
-    },
+    }],
     createdAt: {
         type: Date,
         default: Date.now,
@@ -52,3 +32,46 @@ const postSchema = new mongoose.Schema<PostInterface>({
 });
 
 export const Post = mongoose.model<PostInterface>('Post', postSchema);
+
+const commentSchema = new mongoose.Schema<Comment>({
+    postId: {
+        type: Schema.Types.ObjectId, ref: "Post",
+        required: true,
+    },
+    body: { type: String, required: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    profileImage: { type: String, ref: "User" },
+    likes: [{ type: Schema.Types.ObjectId, default: [], ref: 'User' }],
+    likesCount: { type: Number, default: 0 },
+    emoji: {
+        type: String, default: []
+    },
+    image: { type: String, default: "" },
+    mediaUrls: [{ type: String, default: [], }],
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
+
+})
+
+export const CommentT = mongoose.model<Comment>('CommentT', commentSchema);
+
+const repostSchema = new mongoose.Schema<Repost>({
+    postId: {
+        type: Schema.Types.ObjectId, ref: "Post",
+        required: true,
+    },
+    body: { type: String, required: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    profileImage: { type: String, ref: "User" },
+    likes: [{ type: Schema.Types.ObjectId, default: [], ref: 'User' }],
+    likesCount: { type: Number, default: 0 },
+    emoji: {
+        type: String, default: []
+    },
+    image: { type: String, default: "" },
+    mediaUrls: [{ type: String, default: [], }],
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
+})
+
+export const RepostT = mongoose.model<Repost>('RepostT', repostSchema);

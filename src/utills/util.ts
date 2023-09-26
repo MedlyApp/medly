@@ -57,6 +57,25 @@ export const changePasswordSchema = Joi.object()
     .with('password', 'confirmPassword');
 
 
+const commentSchema = Joi.object({
+    userId: Joi.string().required(), // Assuming userId is a string
+    text: Joi.string().required(),
+});
+
+export const postSchema = Joi.object({
+    userId: Joi.string().required(),
+    content: Joi.string().required(),
+    mediaUrls: Joi.array().items(Joi.string()),
+    likes: Joi.array().items(Joi.string()),
+    comments: Joi.array().items(commentSchema),
+    reposts: Joi.array().items(Joi.string()),
+    createdAt: Joi.date().iso(),
+});
+
+
+
+
+
 
 export const options = {
     abortEarly: false,

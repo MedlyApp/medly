@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.options = exports.changePasswordSchema = exports.forgotPasswordSchema = exports.loginSchema = exports.otpSchema = exports.userSchema = void 0;
+exports.options = exports.postSchema = exports.changePasswordSchema = exports.forgotPasswordSchema = exports.loginSchema = exports.otpSchema = exports.userSchema = void 0;
 const joi_1 = __importDefault(require("joi"));
 exports.userSchema = joi_1.default.object({
     firstName: joi_1.default.string().required(),
@@ -56,6 +56,19 @@ exports.changePasswordSchema = joi_1.default.object()
         .messages({ 'any.only': '{{#label}} does not match' }),
 })
     .with('password', 'confirmPassword');
+const commentSchema = joi_1.default.object({
+    userId: joi_1.default.string().required(),
+    text: joi_1.default.string().required(),
+});
+exports.postSchema = joi_1.default.object({
+    userId: joi_1.default.string().required(),
+    content: joi_1.default.string().required(),
+    mediaUrls: joi_1.default.array().items(joi_1.default.string()),
+    likes: joi_1.default.array().items(joi_1.default.string()),
+    comments: joi_1.default.array().items(commentSchema),
+    reposts: joi_1.default.array().items(joi_1.default.string()),
+    createdAt: joi_1.default.date().iso(),
+});
 exports.options = {
     abortEarly: false,
     errors: {

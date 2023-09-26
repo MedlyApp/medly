@@ -5,7 +5,7 @@ import {
     loginSchema,
     forgotPasswordSchema,
     changePasswordSchema,
-    otpSchema,
+    otpSchema, postSchema,
 } from '../utills/util';
 
 export const validateSignupUser = (req: Request, res: Response, next: NextFunction) => {
@@ -44,6 +44,16 @@ export const validateForgotPassword = (req: Request, res: Response, next: NextFu
 
 export const validateChangePassword = (req: Request, res: Response, next: NextFunction) => {
     const validateResult = changePasswordSchema.validate(req.body, options);
+    if (validateResult.error) {
+        return res.status(400).json({
+            message: validateResult.error.details[0].message,
+        });
+    }
+    next();
+};
+
+export const validatePost = (req: Request, res: Response, next: NextFunction) => {
+    const validateResult = postSchema.validate(req.body, options);
     if (validateResult.error) {
         return res.status(400).json({
             message: validateResult.error.details[0].message,

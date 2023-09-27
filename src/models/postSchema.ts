@@ -12,15 +12,19 @@ const postSchema = new mongoose.Schema<PostInterface>({
         type: String,
         required: true,
     },
-    profileImage: {
+    profilePicture: {
         type: String, ref: "User",
     },
-    userFullName: { type: String, ref: "User" },
-    mediaUrls: {
-        type: [String],
-    },
+    image: [{ type: String, default: [], }],
+    file: [{ type: String, default: [], }],
+    video: [{ type: String, default: [], }],
+    fullName: { type: String, ref: "User" },
+    // mediaUrls: {
+    //     type: [String],
+    // },
     likes: [{ type: Schema.Types.ObjectId, default: [], ref: 'User' }],
     comments: [{ type: Schema.Types.ObjectId, default: [], ref: 'Reply' }],
+    commentCount: { type: Number, default: 0 },
     reposts: [{
         type: Schema.Types.ObjectId, ref: "User",
         default: [],
@@ -44,7 +48,7 @@ const commentSchema = new mongoose.Schema<Comment>({
     likes: [{ type: Schema.Types.ObjectId, default: [], ref: 'User' }],
     likesCount: { type: Number, default: 0 },
     emoji: {
-        type: String, default: []
+        type: String, default: ""
     },
     image: { type: String, default: "" },
     mediaUrls: [{ type: String, default: [], }],

@@ -13,6 +13,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const http_1 = __importDefault(require("http"));
 const userRoute_1 = __importDefault(require("./routes/userRoute"));
 const indexRoute_1 = __importDefault(require("./routes/indexRoute"));
+const postRoute_1 = __importDefault(require("./routes/postRoute"));
 dotenv_1.default.config();
 (0, dbConnect_1.default)();
 const app = (0, express_1.default)();
@@ -28,6 +29,7 @@ app.use((0, cookie_parser_1.default)());
 app.use((0, cors_1.default)());
 app.use('/', indexRoute_1.default);
 app.use('/medly/user', userRoute_1.default);
+app.use('/medly/', postRoute_1.default);
 app.use(function (err, req, res, _next) {
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};

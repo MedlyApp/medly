@@ -2,9 +2,8 @@ import { User, UserInterface } from '../models/userSchema'; import { NextFunctio
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken';
 import { generateLoginToken } from '../utills/helperMethods';
-import { errorResponse, serverError, successResponse, successResponseLogin } from '../utills/helperMethods';
+import { errorResponse, successResponse, successResponseLogin } from '../utills/helperMethods';
 import mailer from '../mailers/sendMail';
 import { Otp } from '../models/otpSchema';
 import { htmlTemplate, GenerateOtp } from '../mailers/mailTemplate';
@@ -35,26 +34,12 @@ export const userRegistration = async (req: Request, res: Response, next: NextFu
         if (duplicatePhoneNumber) {
             return errorResponse(res, 'Phone number already exists', httpStatus.CONFLICT);
         }
-
         const hashPassword = await bcrypt.hash(req.body.password, 10);
-        // const { otp, otp_expiry } = GenerateOtp();
         const user = await User.create({
             ...registrationData,
             password: hashPassword,
-            // otp,
-            // otp_expiry,
+
         });
-
-        // const token = generateLoginToken(user._id);
-
-        // const mailOptions = {
-        //     from: fromUser,
-        //     to: registrationData.email,
-        //     subject: 'Account Verification',
-        //     html: htmlTemplate(otp),
-        // };
-
-        // await mailer.sendEmail(mailOptions.from, mailOptions.to, mailOptions.subject, mailOptions.html);
 
         return successResponseLogin(res, 'Account created successfully', httpStatus.CREATED, user, {});
 
@@ -97,7 +82,7 @@ export const getOtp = async (req: Request, res: Response, next: NextFunction) =>
 export const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
     const { otp } = req.body;
     try {
-        const otpFound = await Otp.findOne({ otp });
+        const otpFound = await Otp.findOne({ otp: otp });
 
         if (!otpFound) {
             return errorResponse(res, 'Email not found', httpStatus.NOT_FOUND);
@@ -122,10 +107,7 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
 
         const updateUser = await User.findByIdAndUpdate(checkUser._id, { isVerified: true }, { new: true });
 
-        const token = generateLoginToken(checkUser?._id);
-
-
-        return successResponseLogin(res, 'OTP verified successfully', httpStatus.OK, updateUser, token);
+        return successResponse(res, 'OTP verified successfully', httpStatus.OK, updateUser);
 
     } catch (error) {
         console.log(error);
@@ -149,7 +131,7 @@ export const userLogin = async (req: Request, res: Response, next: NextFunction)
             return errorResponse(res, 'Incorrect credential supplied', httpStatus.UNAUTHORIZED);
         }
 
-        const token = generateLoginToken(user._id);
+        const token = generateLoginToken({ _id: user._id, email: req.body.email });
 
         return successResponseLogin(res, 'Login successful', httpStatus.OK, user, token);
 

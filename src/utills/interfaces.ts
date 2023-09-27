@@ -3,9 +3,13 @@ import mongoose, { Schema, model, Model, Document, ObjectId } from 'mongoose';
 export interface PostInterface extends Document {
     userId: ObjectId;
     content: string;
-    profileImage: string;
-    userFullName: string;
-    mediaUrls: string[];
+    profilePicture: string;
+    fullName: string;
+    commentCount: number;
+    image: string[];
+    video: string[];
+    file: string[];
+    // mediaUrls: string[];
     likes: ObjectId[];
     comments?: Comment[];
     reposts?: Repost[];
@@ -23,6 +27,7 @@ export interface Comment extends Document {
     createdAt: Date;
     updatedAt: Date;
     likesCount: number;
+    commentCount: number;
     image?: string;
     mediaUrls?: string[];
     emoji?: string;

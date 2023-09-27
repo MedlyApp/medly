@@ -1,50 +1,38 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt, { Secret } from 'jsonwebtoken';
+import httpStatus from 'http-status';
+import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 import { User, UserInterface } from '../models/userSchema';
+import { errorResponse, serverError, successResponse, successResponseLogin } from '../utills/helperMethods';
 
-const jwtSecret = process.env.JWT_SECRET as Secret;
+interface jwtPayload {
+    email: string;
+    _id: mongoose.Types.ObjectId;
+}
+const secret = process.env.JWT_SECRET as string;
 
-if (!jwtSecret) {
+if (!secret) {
     throw new Error('JWT secret key is not defined');
 }
 
-export async function auth(req: Request | any, res: Response, next: NextFunction): Promise<unknown> {
+
+
+export async function auth(req: Request | any, res: Response, next: NextFunction) {
     try {
-        const authorizationHeader = req.headers.authorization;
-
-        if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
-            return res.status(401).json({ Error: 'Kindly login as a user' });
-        }
-
-        const token = authorizationHeader.split(" ")[1];
-
+        const token = req.headers.token;
         if (!token) {
-            return res.status(401).json({ Error: 'Kindly login as a user' });
+            res.status(httpStatus.UNAUTHORIZED).json({ Error: 'User not verified, you cannot access this route' });
+            return;
         }
 
-        let verified: { id: string } | null = null;
-        try {
-            verified = jwt.verify(token, jwtSecret) as { id: string } | null;
-        } catch (error) {
-            return res.status(401).json({ Error: "Token not valid" });
-        }
+        let verified = jwt.verify(token, secret);
 
         if (!verified) {
-            return res.status(401).json({ Error: "Invalid token, you are not authorized to access this route" });
+            return res.status(httpStatus.UNAUTHORIZED).json({ Error: 'User not verified, you cannot access this route' });
         }
-
-        const { id } = verified;
-
-        // Find user by id
-        const user = await User.findOne({ _id: id });
-
-        if (!user) {
-            return res.status(401).json({ Error: "Kindly login correct details as a user" });
-        }
-
-        req.user = verified;
         next();
     } catch (error) {
-        res.status(401).json({ Error: "User not authenticated, please login first." });
+        console.log(error);
+        return res.status(httpStatus.FORBIDDEN).json({ Error: 'User is not not logged in' });
     }
 }

@@ -28,21 +28,10 @@ const userRegistration = async (req, res, next) => {
             return (0, helperMethods_2.errorResponse)(res, 'Phone number already exists', http_status_1.default.CONFLICT);
         }
         const hashPassword = await bcryptjs_1.default.hash(req.body.password, 10);
-        // const { otp, otp_expiry } = GenerateOtp();
         const user = await userSchema_1.User.create({
             ...registrationData,
             password: hashPassword,
-            // otp,
-            // otp_expiry,
         });
-        // const token = generateLoginToken(user._id);
-        // const mailOptions = {
-        //     from: fromUser,
-        //     to: registrationData.email,
-        //     subject: 'Account Verification',
-        //     html: htmlTemplate(otp),
-        // };
-        // await mailer.sendEmail(mailOptions.from, mailOptions.to, mailOptions.subject, mailOptions.html);
         return (0, helperMethods_2.successResponseLogin)(res, 'Account created successfully', http_status_1.default.CREATED, user, {});
     }
     catch (error) {
@@ -76,7 +65,7 @@ exports.getOtp = getOtp;
 const verifyOtp = async (req, res, next) => {
     const { otp } = req.body;
     try {
-        const otpFound = await otpSchema_1.Otp.findOne({ otp });
+        const otpFound = await otpSchema_1.Otp.findOne({ otp: otp });
         if (!otpFound) {
             return (0, helperMethods_2.errorResponse)(res, 'Email not found', http_status_1.default.NOT_FOUND);
         }
@@ -95,8 +84,7 @@ const verifyOtp = async (req, res, next) => {
             return (0, helperMethods_2.errorResponse)(res, 'User already verified', http_status_1.default.CONFLICT);
         }
         const updateUser = await userSchema_1.User.findByIdAndUpdate(checkUser._id, { isVerified: true }, { new: true });
-        const token = (0, helperMethods_1.generateLoginToken)(checkUser === null || checkUser === void 0 ? void 0 : checkUser._id);
-        return (0, helperMethods_2.successResponseLogin)(res, 'OTP verified successfully', http_status_1.default.OK, updateUser, token);
+        return (0, helperMethods_2.successResponse)(res, 'OTP verified successfully', http_status_1.default.OK, updateUser);
     }
     catch (error) {
         console.log(error);
@@ -114,7 +102,7 @@ const userLogin = async (req, res, next) => {
         if (!isMatch) {
             return (0, helperMethods_2.errorResponse)(res, 'Incorrect credential supplied', http_status_1.default.UNAUTHORIZED);
         }
-        const token = (0, helperMethods_1.generateLoginToken)(user._id);
+        const token = (0, helperMethods_1.generateLoginToken)({ _id: user._id, email: req.body.email });
         return (0, helperMethods_2.successResponseLogin)(res, 'Login successful', http_status_1.default.OK, user, token);
     }
     catch (error) {

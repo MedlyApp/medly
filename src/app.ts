@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import http from 'http';
 import userRouter from './routes/userRoute';
 import indexRouter from './routes/indexRoute';
+import postRouter from './routes/postRoute';
 dotenv.config()
 dbConnect()
 
@@ -29,6 +30,7 @@ app.use(cors());
 
 app.use('/', indexRouter);
 app.use('/medly/user', userRouter);
+app.use('/medly/', postRouter);
 
 
 app.use(function (err: createError.HttpError, req: express.Request, res: express.Response, _next: express.NextFunction,) {

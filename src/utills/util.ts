@@ -22,7 +22,7 @@ export const userSchema = Joi.object({
     otp: Joi.number(),
     otp_expiry: Joi.date().iso(),
     profilePicture: Joi.string().allow('').default(''),
-    userType: Joi.string().valid('doctor', 'regular', 'admin').default('regular'),
+    // userType: Joi.string().valid('doctor', 'regular', 'admin').default('regular'),
     isVerified: Joi.boolean().default(false),
     isLocked: Joi.boolean().default(false),
     role: Joi.string().valid('user', 'admin'),

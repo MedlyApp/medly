@@ -28,4 +28,4 @@ export const uploadFile = async (fileUrl: string, publicId: string, fileType: st
     } catch (err) {
         throw err;
     }
-};
+}

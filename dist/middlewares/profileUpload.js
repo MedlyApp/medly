@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.upload = void 0;
+exports.uploadProfile = void 0;
 const path_1 = require("path");
 const multer_1 = __importDefault(require("multer"));
 const cloudinary_1 = require("cloudinary");
@@ -16,11 +16,11 @@ cloudinary_1.v2.config({
 const storageOptions = {
     cloudinary: cloudinary_1.v2,
     params: (req, file, cb) => {
-        const post = req.body;
-        const userId = post.userId;
-        const postId = post._id;
+        const user = req.body;
+        const userId = user._id;
+        const profilePicture = user.profilePicture || 'https://res.cloudinary.com/dq7l8216n/image/upload/v1628584753/medly/placeholder-image.jpg';
         const ext = (0, path_1.extname)(file.originalname);
-        const filename = `${userId}-${postId}-${Date.now()}${ext}`;
+        const filename = `${userId}-${profilePicture}-${Date.now()}${ext}`;
         const params = {
             folder: "uploads",
             allowed_formats: ["jpeg", "jpg", "png", "gif", "mp4", "avi", "mov", "pdf", "doc", "docx", "xls", "xlsx"],
@@ -29,8 +29,8 @@ const storageOptions = {
         cb(null, params);
     },
 };
-exports.upload = (0, multer_1.default)({
+exports.uploadProfile = (0, multer_1.default)({
     storage: new multer_storage_cloudinary_1.CloudinaryStorage(storageOptions),
     limits: { fileSize: 100000000000 },
 });
-//# sourceMappingURL=multer.js.map
+//# sourceMappingURL=profileUpload.js.map

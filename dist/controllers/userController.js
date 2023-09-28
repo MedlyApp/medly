@@ -7,6 +7,7 @@ exports.updateProfilePicture = exports.resetPassword = exports.forgotPassword = 
 const userSchema_1 = require("../models/userSchema");
 const http_status_1 = __importDefault(require("http-status"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const helperMethods_1 = require("../utills/helperMethods");
 const helperMethods_2 = require("../utills/helperMethods");
 const sendMail_1 = __importDefault(require("../mailers/sendMail"));
@@ -161,7 +162,31 @@ const resetPassword = async (req, res, next) => {
     }
 };
 exports.resetPassword = resetPassword;
-const updateProfilePicture = (res, req, next) => {
+const updateProfilePicture = async (req, res, next) => {
+    try {
+        const verified = req.headers.token;
+        const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+        const { _id } = token;
+        const { profilePicture } = req.body;
+        const user = await userSchema_1.User.findOne({ _id });
+        if (!user) {
+            return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+        }
+        console.log("Req file", req.file);
+        if (!req.file) {
+            return (0, helperMethods_2.errorResponse)(res, 'No file uploaded', http_status_1.default.BAD_REQUEST);
+        }
+        const update = await userSchema_1.User.findByIdAndUpdate(user._id, { profilePicture: req.file.path }, { new: true });
+        console.log("Update here", update);
+        return res.status(http_status_1.default.OK).json({
+            message: 'Profile picture updated successfully',
+            user: update,
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return (0, helperMethods_2.errorResponse)(res, 'An error occurred while updating the profile picture', http_status_1.default.INTERNAL_SERVER_ERROR);
+    }
 };
 exports.updateProfilePicture = updateProfilePicture;
 //# sourceMappingURL=userController.js.map

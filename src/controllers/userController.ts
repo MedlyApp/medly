@@ -1,7 +1,9 @@
 import { User, UserInterface } from '../models/userSchema'; import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
-import bcrypt from 'bcryptjs'
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { userRequest } from '../express';
 import { generateLoginToken } from '../utills/helperMethods';
 import { errorResponse, successResponse, successResponseLogin } from '../utills/helperMethods';
 import mailer from '../mailers/sendMail';
@@ -206,7 +208,35 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
 }
 
-export const updateProfilePicture = (res: Response, req: Request, next: NextFunction) => {
+export const updateProfilePicture = async (req: userRequest, res: Response, next: NextFunction) => {
+    try {
+        const verified = req.headers.token as string;
+        const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+        const { _id } = token;
+        const { profilePicture } = req.body
+        const user = await User.findOne({ _id });
+        if (!user) {
+            return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+        }
+        console.log("Req file", req.file);
+        if (!req.file) {
+            return errorResponse(res, 'No file uploaded', httpStatus.BAD_REQUEST);
+        }
+        const update = await User.findByIdAndUpdate(user._id, { profilePicture: req.file.path }, { new: true });
+        console.log("Update here", update);
+        return res.status(httpStatus.OK).json({
+            message: 'Profile picture updated successfully',
+            user: update,
+        });
 
 
+    } catch (error) {
+        console.error(error);
+        return errorResponse(
+            res,
+            'An error occurred while updating the profile picture',
+            httpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
 }
+

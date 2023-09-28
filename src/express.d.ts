@@ -1,10 +1,6 @@
 import { Request } from 'express';
+import { UserInterface } from '../models/userSchema';
+export interface userRequest extends Request {
+    user?: UserInterface;
 
-declare global {
-    namespace Express {
-        interface Request {
-            user: { id: string };
-            // Add any other custom properties related to the 'user' object if needed
-        }
-    }
 }

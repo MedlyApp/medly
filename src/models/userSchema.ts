@@ -19,7 +19,7 @@ export interface UserInterface extends Document {
     location?: string;
     socialLinks?: SocialLinks;
     profilePicture?: string;
-    userType: string;
+    // userType?: string;
     isVerified?: boolean;
     isLocked?: boolean;
     role?: 'user' | 'admin';
@@ -88,12 +88,12 @@ const userSchema = new mongoose.Schema<UserInterface>({
         required: true,
     },
 
-    userType: {
-        type: String,
-        required: true,
-        enum: ['doctor', 'regular', 'admin'],
-        default: 'regular',
-    },
+    // userType: {
+    //     type: String,
+    //     required: true,
+    //     enum: ['doctor', 'regular', 'admin'],
+    //     default: 'regular',
+    // },
     role: {
         type: String,
         enum: ['user', 'admin'],

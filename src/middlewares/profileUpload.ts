@@ -3,7 +3,8 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage, Options as CloudinaryStorageOptions } from "multer-storage-cloudinary";
 import { Request } from "express";
-import { PostInterface } from '../utills/interfaces'; // Import the PostAttributes interface from your model
+import { PostInterface, } from '../utills/interfaces';
+import { UserInterface } from "../models/userSchema";
 
 cloudinary.config({
     cloud_name: process.env.cloudinary_cloud_name,
@@ -14,11 +15,11 @@ cloudinary.config({
 const storageOptions: CloudinaryStorageOptions = {
     cloudinary: cloudinary,
     params: (req: Request, file: Express.Multer.File, cb: (error: Error | null, params: any) => void) => {
-        const post: PostInterface = req.body as PostInterface;
-        const userId = post.userId;
-        const postId = post._id;
+        const user: UserInterface = req.body as UserInterface;
+        const userId = user._id;
+        const profilePicture = user.profilePicture || 'https://res.cloudinary.com/dq7l8216n/image/upload/v1628584753/medly/placeholder-image.jpg';
         const ext = _extname(file.originalname);
-        const filename = `${userId}-${postId}-${Date.now()}${ext}`;
+        const filename = `${userId}-${profilePicture}-${Date.now()}${ext}`;
         const params = {
             folder: "uploads",
             allowed_formats: ["jpeg", "jpg", "png", "gif", "mp4", "avi", "mov", "pdf", "doc", "docx", "xls", "xlsx"],
@@ -30,7 +31,7 @@ const storageOptions: CloudinaryStorageOptions = {
 };
 
 
-export const upload = multer({
+export const uploadProfile = multer({
     storage: new CloudinaryStorage(storageOptions),
     limits: { fileSize: 100000000000 },
 });

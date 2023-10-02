@@ -42,6 +42,10 @@ const errorResponse = (res, message, code) => {
     });
 };
 exports.errorResponse = errorResponse;
+// export const errorResponse = (res: Response, message: string, status: number): void => {
+//     res.status(status).json({ message });
+//     return;
+// };
 const successResponseLogin = (res, message, code, data, token) => {
     return res.status(code).json({
         success: true,

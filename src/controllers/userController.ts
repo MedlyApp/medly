@@ -8,6 +8,7 @@ import { generateLoginToken } from '../utills/helperMethods';
 import { errorResponse, successResponse, successResponseLogin } from '../utills/helperMethods';
 import mailer from '../mailers/sendMail';
 import { Otp } from '../models/otpSchema';
+import { sendSms } from '../utills/twilio';
 import { htmlTemplate, GenerateOtp } from '../mailers/mailTemplate';
 const jwtsecret = process.env.JWT_SECRET as string;
 const fromUser = process.env.FROM as string;
@@ -54,9 +55,11 @@ export const userRegistration = async (req: Request, res: Response, next: NextFu
 export const getOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const findUser = await User.findOne({ $or: [{ email: req.body.email }, { phoneNumber: req.body.phoneNumber }] });
+
         if (!findUser) {
             return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
         }
+        const convert = findUser.toJSON();
         const { otp, otp_expiry } = GenerateOtp();
         const updateOtp = await Otp.findOneAndUpdate(
             { userId: findUser._id },
@@ -72,7 +75,7 @@ export const getOtp = async (req: Request, res: Response, next: NextFunction) =>
         updateOtp?.save();
 
         await mailer.sendEmail(mailOptions.from, mailOptions.to, mailOptions.subject, mailOptions.html);
-
+        sendSms(convert.phoneNumber, `Your OTP is ${otp}`);
         return successResponse(res, 'OTP sent successfully', httpStatus.OK, {});
 
 

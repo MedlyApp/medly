@@ -6,9 +6,9 @@ import { Request } from "express";
 import { PostInterface } from '../utills/interfaces'; // Import the PostAttributes interface from your model
 
 cloudinary.config({
-    cloud_name: process.env.cloudinary_cloud_name,
-    api_key: process.env.cloudinary_api_key,
-    api_secret: process.env.cloudinary_api_secret,
+    cloud_name: 'dwlkyt8w0',
+    api_key: '432296571787281',
+    api_secret: 'koZZQsTDHvfdYuBnIBLfFljabwA'
 });
 
 const storageOptions: CloudinaryStorageOptions = {

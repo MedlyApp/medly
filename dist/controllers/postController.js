@@ -14,6 +14,7 @@ const jwtsecret = process.env.JWT_SECRET;
 const fromUser = process.env.FROM;
 const createPosts = async (req, res) => {
     try {
+        console.log("Request body", req.files);
         const verified = req.headers.token;
         const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
         const { _id } = token;
@@ -21,64 +22,56 @@ const createPosts = async (req, res) => {
         if (!user) {
             return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
         }
-        const { content, image, video, file } = req.body;
-        const images = [];
-        const videos = [];
-        const files = [];
-        let fileUrls = [];
+        const { groupId, content, ...postData } = req.body;
+        console.log("Post data", postData);
+        if (!Array.isArray(postData.image)) {
+            postData.image = [];
+        }
+        if (!postData.video) {
+            postData.video = '';
+        }
+        if (!Array.isArray(postData.file)) {
+            postData.file = [];
+        }
+        postData.fullName = user.firstName + ' ' + user.lastName;
+        postData.userId = user._id;
+        // postData._id = _id.toString();
+        if (req.files === undefined) {
+            console.error('No files uploaded here');
+            return (0, helperMethods_1.errorResponse)(res, 'No files uploaded', http_status_1.default.BAD_REQUEST);
+        }
         if (req.files) {
             const files = req.files;
-            if (files.image && Array.isArray(files.image)) {
-                for (const img of files.image) {
-                    const imagePath = img.path;
-                    const uploadResult = await (0, cloudinary_1.uploadFile)(imagePath, _id.toString(), 'image');
-                    if (uploadResult.secure_url) {
-                        images.push(uploadResult.secure_url);
-                    }
-                    else {
-                        return res.status(400).json({ Error: 'Error uploading the image' });
-                    }
-                }
-            }
-            if (files.video && Array.isArray(files.video)) {
-                for (const vid of files.video) {
-                    const videoPath = vid.path;
-                    const uploadResult = await (0, cloudinary_1.uploadFile)(videoPath, _id.toString(), 'video');
-                    if (uploadResult.secure_url) {
-                        videos.push(uploadResult.secure_url);
-                    }
-                    else {
-                        return res.status(400).json({ Error: 'Error uploading the video' });
-                    }
-                }
-            }
-            if (files.file && Array.isArray(files.file)) {
-                for (const f of files.file) {
-                    const filePath = f.path;
-                    const uploadResult = await (0, cloudinary_1.uploadFile)(filePath, _id.toString(), 'file');
-                    if (uploadResult.secure_url) {
-                        fileUrls.push(uploadResult.secure_url);
-                    }
-                    else {
-                        return res.status(400).json({ Error: 'Error uploading the file' });
+            console.log("Files", files);
+            for (const fieldName in files) {
+                if (Array.isArray(files[fieldName])) {
+                    for (const file of files[fieldName]) {
+                        const filePath = file.path;
+                        console.log("File path", filePath);
+                        try {
+                            const uploadResult = await (0, cloudinary_1.uploadFile)(filePath, postData._id.toString(), fieldName);
+                            console.log("Upload result", uploadResult);
+                            // postData[fieldName].push(uploadResult);
+                        }
+                        catch (error) {
+                            console.error(error);
+                            // Handle the error by sending a response or taking appropriate action
+                            return (0, helperMethods_1.errorResponse)(res, 'Error uploading file', http_status_1.default.INTERNAL_SERVER_ERROR);
+                        }
                     }
                 }
             }
         }
-        const post = new postSchema_1.Post({
-            content: content,
-            fullName: user.firstName + ' ' + user.lastName,
-            profilePicture: user.profilePicture,
-            userId: user._id,
-            image: images,
-            video: videos,
-            file: fileUrls,
-        });
-        const savedPost = await post.save();
-        return (0, helperMethods_1.successResponse)(res, 'Post created successfully', http_status_1.default.CREATED, savedPost);
+        try {
+            const savedPost = await postSchema_1.Post.create(postData);
+            return (0, helperMethods_1.successResponse)(res, 'Post created successfully', http_status_1.default.CREATED, savedPost);
+        }
+        catch (error) {
+            console.log(error);
+        }
     }
     catch (error) {
-        console.log(error);
+        console.error(error);
         return (0, helperMethods_1.errorResponse)(res, 'An error occurred while creating the post', http_status_1.default.INTERNAL_SERVER_ERROR);
     }
 };

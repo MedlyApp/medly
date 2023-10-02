@@ -12,6 +12,7 @@ const helperMethods_1 = require("../utills/helperMethods");
 const helperMethods_2 = require("../utills/helperMethods");
 const sendMail_1 = __importDefault(require("../mailers/sendMail"));
 const otpSchema_1 = require("../models/otpSchema");
+const twilio_1 = require("../utills/twilio");
 const mailTemplate_1 = require("../mailers/mailTemplate");
 const jwtsecret = process.env.JWT_SECRET;
 const fromUser = process.env.FROM;
@@ -46,6 +47,7 @@ const getOtp = async (req, res, next) => {
         if (!findUser) {
             return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
         }
+        const convert = findUser.toJSON();
         const { otp, otp_expiry } = (0, mailTemplate_1.GenerateOtp)();
         const updateOtp = await otpSchema_1.Otp.findOneAndUpdate({ userId: findUser._id }, { otp, otp_expiry }, { upsert: true, new: true });
         const mailOptions = {
@@ -56,6 +58,7 @@ const getOtp = async (req, res, next) => {
         };
         updateOtp === null || updateOtp === void 0 ? void 0 : updateOtp.save();
         await sendMail_1.default.sendEmail(mailOptions.from, mailOptions.to, mailOptions.subject, mailOptions.html);
+        (0, twilio_1.sendSms)(convert.phoneNumber, `Your OTP is ${otp}`);
         return (0, helperMethods_2.successResponse)(res, 'OTP sent successfully', http_status_1.default.OK, {});
     }
     catch (error) {

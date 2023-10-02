@@ -27,7 +27,7 @@ exports.userSchema = joi_1.default.object({
     otp: joi_1.default.number(),
     otp_expiry: joi_1.default.date().iso(),
     profilePicture: joi_1.default.string().allow('').default(''),
-    userType: joi_1.default.string().valid('doctor', 'regular', 'admin').default('regular'),
+    // userType: Joi.string().valid('doctor', 'regular', 'admin').default('regular'),
     isVerified: joi_1.default.boolean().default(false),
     isLocked: joi_1.default.boolean().default(false),
     role: joi_1.default.string().valid('user', 'admin'),

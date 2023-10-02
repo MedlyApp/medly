@@ -30,6 +30,9 @@ const postSchema = new mongoose_1.default.Schema({
         type: mongoose_1.default.Types.ObjectId, ref: "User",
         required: true,
     },
+    groupId: {
+        type: mongoose_1.default.Types.ObjectId, ref: "Group",
+    },
     content: {
         type: String,
         required: true,
@@ -37,13 +40,24 @@ const postSchema = new mongoose_1.default.Schema({
     profilePicture: {
         type: String, ref: "User",
     },
-    image: [{ type: String, default: [], }],
-    file: [{ type: String, default: [], }],
-    video: [{ type: String, default: [], }],
+    image: [
+        {
+            fileName: { type: String },
+            fileType: { type: String },
+            url: { type: String },
+            size: { type: Number },
+        },
+    ],
+    file: [
+        {
+            fileName: { type: String },
+            fileType: { type: String },
+            url: { type: String },
+            size: { type: Number },
+        },
+    ],
+    video: { type: String, default: "", },
     fullName: { type: String, ref: "User" },
-    // mediaUrls: {
-    //     type: [String],
-    // },
     likes: [{ type: mongoose_1.Schema.Types.ObjectId, default: [], ref: 'User' }],
     comments: [{ type: mongoose_1.Schema.Types.ObjectId, default: [], ref: 'Reply' }],
     commentCount: { type: Number, default: 0 },
@@ -51,6 +65,7 @@ const postSchema = new mongoose_1.default.Schema({
             type: mongoose_1.Schema.Types.ObjectId, ref: "User",
             default: [],
         }],
+    visibleTo: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User", default: [] }],
     createdAt: {
         type: Date,
         default: Date.now,

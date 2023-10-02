@@ -1,5 +1,5 @@
 import mongoose, { Schema, model, Model, Document, ObjectId } from 'mongoose';
-import { PostInterface, Comment, Repost } from "../utills/interfaces"
+import { PostInterface, Comment, Repost, UploadType } from "../utills/interfaces"
 
 
 
@@ -8,6 +8,10 @@ const postSchema = new mongoose.Schema<PostInterface>({
         type: mongoose.Types.ObjectId, ref: "User",
         required: true,
     },
+    groupId: {
+        type: mongoose.Types.ObjectId, ref: "Group",
+
+    },
     content: {
         type: String,
         required: true,
@@ -15,13 +19,24 @@ const postSchema = new mongoose.Schema<PostInterface>({
     profilePicture: {
         type: String, ref: "User",
     },
-    image: [{ type: String, default: [], }],
-    file: [{ type: String, default: [], }],
-    video: [{ type: String, default: [], }],
+    image: [
+        {
+            fileName: { type: String },
+            fileType: { type: String },
+            url: { type: String },
+            size: { type: Number },
+        },
+    ],
+    file: [
+        {
+            fileName: { type: String },
+            fileType: { type: String },
+            url: { type: String },
+            size: { type: Number },
+        },
+    ],
+    video: { type: String, default: "", },
     fullName: { type: String, ref: "User" },
-    // mediaUrls: {
-    //     type: [String],
-    // },
     likes: [{ type: Schema.Types.ObjectId, default: [], ref: 'User' }],
     comments: [{ type: Schema.Types.ObjectId, default: [], ref: 'Reply' }],
     commentCount: { type: Number, default: 0 },
@@ -29,6 +44,7 @@ const postSchema = new mongoose.Schema<PostInterface>({
         type: Schema.Types.ObjectId, ref: "User",
         default: [],
     }],
+    visibleTo: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
     createdAt: {
         type: Date,
         default: Date.now,

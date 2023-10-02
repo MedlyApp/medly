@@ -64,12 +64,12 @@ const userSchema = new mongoose_1.default.Schema({
         default: false,
         required: true,
     },
-    userType: {
-        type: String,
-        required: true,
-        enum: ['doctor', 'regular', 'admin'],
-        default: 'regular',
-    },
+    // userType: {
+    //     type: String,
+    //     required: true,
+    //     enum: ['doctor', 'regular', 'admin'],
+    //     default: 'regular',
+    // },
     role: {
         type: String,
         enum: ['user', 'admin'],

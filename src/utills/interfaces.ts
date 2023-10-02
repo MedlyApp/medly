@@ -1,16 +1,21 @@
 import mongoose, { Schema, model, Model, Document, ObjectId } from 'mongoose';
-
+export type UploadType = {
+    fileName: string;
+    fileType: string;
+    url: string;
+    size: number;
+};
 export interface PostInterface extends Document {
     userId: ObjectId;
+    groupId: ObjectId;
     content: string;
     profilePicture: string;
     fullName: string;
     commentCount: number;
-    image: string[];
-    video: string[];
-    file: string[];
-    // mediaUrls: string[];
-    likes: ObjectId[];
+    image?: UploadType[];
+    video?: string;
+    file?: UploadType[];
+    likes?: ObjectId[];
     comments?: Comment[];
     reposts?: Repost[];
     emoji?: string;

@@ -1,6 +1,9 @@
 import { CommentT, Post } from "../models/postSchema";
+import { UserInterface } from "../models/userSchema";
+import { PostInterface } from "../utills/interfaces";
 import { Request, Response } from 'express';
-import { uploadFile } from "../middlewares/cloudinary";
+import { uploadFile } from '../middlewares/cloudinary';
+import { upload } from '../middlewares/multer';
 import { User } from "../models/userSchema";
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
@@ -14,8 +17,10 @@ interface jwtPayload {
 }
 
 
-export const createPosts = async (req: Request, res: Response): Promise<unknown> => {
+
+export const createPosts = async (req: Request, res: Response) => {
     try {
+        console.log("Request body", req.files);
         const verified = req.headers.token as string;
         const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
         const { _id } = token;
@@ -25,72 +30,66 @@ export const createPosts = async (req: Request, res: Response): Promise<unknown>
             return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
         }
 
-        const { content, image, video, file } = req.body;
-        const images: string[] = [];
-        const videos: string[] = [];
-        const files: string[] = [];
-        let fileUrls: string[] = [];
+        const { groupId, content, ...postData }: PostInterface = req.body;
+
+        console.log("Post data", postData);
+
+        if (!Array.isArray(postData.image)) {
+            postData.image = [];
+        }
+
+        if (!postData.video) {
+            postData.video = '';
+        }
+
+        if (!Array.isArray(postData.file)) {
+            postData.file = [];
+        }
+
+        postData.fullName = user.firstName + ' ' + user.lastName;
+        postData.userId = user._id;
+        // postData._id = _id.toString();
+
+        if (req.files === undefined) {
+            console.error('No files uploaded here');
+            return errorResponse(res, 'No files uploaded', httpStatus.BAD_REQUEST);
+        }
 
         if (req.files) {
             const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-
-            if (files.image && Array.isArray(files.image)) {
-                for (const img of files.image) {
-                    const imagePath = img.path;
-                    const uploadResult = await uploadFile(imagePath, _id.toString(), 'image');
-
-                    if (uploadResult.secure_url) {
-                        images.push(uploadResult.secure_url);
-                    } else {
-                        return res.status(400).json({ Error: 'Error uploading the image' });
+            console.log("Files", files);
+            for (const fieldName in files) {
+                if (Array.isArray(files[fieldName])) {
+                    for (const file of files[fieldName]) {
+                        const filePath = file.path;
+                        console.log("File path", filePath)
+                        try {
+                            const uploadResult = await uploadFile(filePath, postData._id.toString(), fieldName);
+                            console.log("Upload result", uploadResult);
+                            // postData[fieldName].push(uploadResult);
+                        } catch (error) {
+                            console.error(error);
+                            // Handle the error by sending a response or taking appropriate action
+                            return errorResponse(res, 'Error uploading file', httpStatus.INTERNAL_SERVER_ERROR);
+                        }
                     }
                 }
             }
 
-            if (files.video && Array.isArray(files.video)) {
-                for (const vid of files.video) {
-                    const videoPath = vid.path;
-                    const uploadResult = await uploadFile(videoPath, _id.toString(), 'video');
-
-                    if (uploadResult.secure_url) {
-                        videos.push(uploadResult.secure_url);
-                    } else {
-                        return res.status(400).json({ Error: 'Error uploading the video' });
-                    }
-                }
-            }
-
-            if (files.file && Array.isArray(files.file)) {
-                for (const f of files.file) {
-                    const filePath = f.path;
-                    const uploadResult = await uploadFile(filePath, _id.toString(), 'file');
-
-                    if (uploadResult.secure_url) {
-                        fileUrls.push(uploadResult.secure_url);
-                    } else {
-                        return res.status(400).json({ Error: 'Error uploading the file' });
-                    }
-                }
-            }
         }
+        try {
 
-        const post = new Post({
-            content: content,
-            fullName: user.firstName + ' ' + user.lastName,
-            profilePicture: user.profilePicture,
-            userId: user._id,
-            image: images,
-            video: videos,
-            file: fileUrls,
-        });
-
-        const savedPost = await post.save();
-        return successResponse(res, 'Post created successfully', httpStatus.CREATED, savedPost);
+            const savedPost = await Post.create(postData);
+            return successResponse(res, 'Post created successfully', httpStatus.CREATED, savedPost);
+        } catch (error) {
+            console.log(error);
+        }
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return errorResponse(res, 'An error occurred while creating the post', httpStatus.INTERNAL_SERVER_ERROR);
     }
 };
+
 
 
 

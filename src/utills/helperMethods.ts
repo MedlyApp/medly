@@ -48,6 +48,10 @@ export const errorResponse = (res: Response, message: string, code: number) => {
         message,
     });
 };
+// export const errorResponse = (res: Response, message: string, status: number): void => {
+//     res.status(status).json({ message });
+//     return;
+// };
 
 export const successResponseLogin = (res: Response, message: string, code: number, data: unknown, token: unknown) => {
     return res.status(code).json({

@@ -11,12 +11,12 @@ cloudinary.config({
 });
 
 
-type ResourceType = 'raw' | 'auto' | 'image' | 'video' | undefined;
+type ResourceType = 'audio' | 'auto' | 'image' | 'video' | 'raw' | undefined;
 export const uploadToCloudinary = async (file: Express.Multer.File, resourceType: ResourceType): Promise<string> => {
     const fileStream = streamifier.createReadStream(file.buffer);
     return new Promise<string>((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
-            { resource_type: resourceType },
+            { resource_type: resourceType === 'audio' ? 'raw' : resourceType },
             (error, result) => {
                 if (error) {
                     reject(error);

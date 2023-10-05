@@ -8,7 +8,6 @@ import logger from 'morgan';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import http from 'http';
-import multer from 'multer';
 import userRouter from './routes/userRoute';
 import indexRouter from './routes/indexRoute';
 import postRouter from './routes/postRoute';

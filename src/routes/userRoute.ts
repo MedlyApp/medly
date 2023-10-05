@@ -12,7 +12,7 @@ router.post('/otp/verify', verifyOtp);
 router.post('/login', validateLoginUser, userLogin);
 router.post('/forgot-password', validateForgotPassword, forgotPassword);
 router.post('/reset-password', validateChangePassword, resetPassword);
-router.put('/upload-profile-picture', uploadProfile.array('profilePicture'), auth, updateProfilePicture);
+// router.put('/upload-profile-picture', uploadProfile.array('profilePicture'), auth, updateProfilePicture);
 
 
 export default router;

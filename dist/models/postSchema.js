@@ -37,28 +37,40 @@ const postSchema = new mongoose_1.default.Schema({
         type: String,
         required: true,
     },
+    postType: {
+        type: String,
+        enum: ['group', 'general', 'individual'],
+        required: true,
+    },
     profilePicture: {
         type: String, ref: "User",
     },
     image: [
         {
-            fileName: { type: String },
-            fileType: { type: String },
-            url: { type: String },
-            size: { type: Number },
+            type: String,
+            default: [],
+        },
+    ],
+    audio: [
+        {
+            type: String,
+            default: [],
+        },
+    ],
+    video: [
+        {
+            type: String,
+            default: [],
         },
     ],
     file: [
         {
-            fileName: { type: String },
-            fileType: { type: String },
-            url: { type: String },
-            size: { type: Number },
+            type: String,
         },
     ],
-    video: { type: String, default: "", },
     fullName: { type: String, ref: "User" },
     likes: [{ type: mongoose_1.Schema.Types.ObjectId, default: [], ref: 'User' }],
+    likesCount: { type: Number, default: 0 },
     comments: [{ type: mongoose_1.Schema.Types.ObjectId, default: [], ref: 'Reply' }],
     commentCount: { type: Number, default: 0 },
     reposts: [{
@@ -82,11 +94,16 @@ const commentSchema = new mongoose_1.default.Schema({
     profileImage: { type: String, ref: "User" },
     likes: [{ type: mongoose_1.Schema.Types.ObjectId, default: [], ref: 'User' }],
     likesCount: { type: Number, default: 0 },
+    commentCount: { type: Number, default: 0 },
     emoji: {
         type: String, default: ""
     },
-    image: { type: String, default: "" },
-    mediaUrls: [{ type: String, default: [], }],
+    image: [
+        {
+            type: String,
+            default: [],
+        },
+    ],
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });
@@ -104,7 +121,12 @@ const repostSchema = new mongoose_1.default.Schema({
     emoji: {
         type: String, default: []
     },
-    image: { type: String, default: "" },
+    image: [
+        {
+            type: String,
+            default: [],
+        },
+    ],
     mediaUrls: [{ type: String, default: [], }],
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },

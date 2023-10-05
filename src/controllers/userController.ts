@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { userRequest } from '../express';
+import { userRequest } from '../types/express';
 import { generateLoginToken } from '../utills/helperMethods';
 import { errorResponse, successResponse, successResponseLogin } from '../utills/helperMethods';
 import mailer from '../mailers/sendMail';
@@ -75,7 +75,7 @@ export const getOtp = async (req: Request, res: Response, next: NextFunction) =>
         updateOtp?.save();
 
         await mailer.sendEmail(mailOptions.from, mailOptions.to, mailOptions.subject, mailOptions.html);
-        sendSms(convert.phoneNumber, `Your OTP is ${otp}`);
+        // sendSms(convert.phoneNumber, `Your OTP is ${otp}`);
         return successResponse(res, 'OTP sent successfully', httpStatus.OK, {});
 
 

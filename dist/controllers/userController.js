@@ -8,6 +8,7 @@ const userSchema_1 = require("../models/userSchema");
 const http_status_1 = __importDefault(require("http-status"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const newCloud_1 = require("../utills/newCloud");
 const helperMethods_1 = require("../utills/helperMethods");
 const helperMethods_2 = require("../utills/helperMethods");
 const sendMail_1 = __importDefault(require("../mailers/sendMail"));
@@ -44,7 +45,7 @@ const getOtp = async (req, res, next) => {
     try {
         const findUser = await userSchema_1.User.findOne({ $or: [{ email: req.body.email }, { phoneNumber: req.body.phoneNumber }] });
         if (!findUser) {
-            return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+            return (0, helperMethods_2.errorResponse)(res, 'User credential not found', http_status_1.default.NOT_FOUND);
         }
         const convert = findUser.toJSON();
         const { otp, otp_expiry } = (0, mailTemplate_1.GenerateOtp)();
@@ -169,20 +170,25 @@ const updateProfilePicture = async (req, res, next) => {
         const verified = req.headers.token;
         const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
         const { _id } = token;
-        const { profilePicture } = req.body;
         const user = await userSchema_1.User.findOne({ _id });
         if (!user) {
             return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
         }
-        console.log("Req file", req.file);
-        if (!req.file) {
-            return (0, helperMethods_2.errorResponse)(res, 'No file uploaded', http_status_1.default.BAD_REQUEST);
+        const { profilePicture } = req.body;
+        const imageUploadPromises = [];
+        const filesWithImage = req.files;
+        console.log("File eith image", filesWithImage);
+        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+            filesWithImage.image.forEach((file) => {
+                const imageUploadPromise = (0, newCloud_1.uploadToCloudinary)(file, 'image');
+                imageUploadPromises.push(imageUploadPromise);
+                console.log("Image upload promise", imageUploadPromise);
+            });
         }
-        const update = await userSchema_1.User.findByIdAndUpdate(user._id, { profilePicture: req.file.path }, { new: true });
-        console.log("Update here", update);
+        const imageUrls = await Promise.all(imageUploadPromises);
+        const update = await userSchema_1.User.findByIdAndUpdate(user._id, { profilePicture: imageUrls }, { new: true });
         return res.status(http_status_1.default.OK).json({
-            message: 'Profile picture updated successfully',
-            user: update,
+            message: 'Profile picture updated successfully', user: update
         });
     }
     catch (error) {

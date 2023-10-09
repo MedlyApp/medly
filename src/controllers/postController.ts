@@ -3,7 +3,7 @@ import { PostInterface } from "../utills/interfaces";
 import { Request, Response } from 'express';
 import { v2 as cloudinary } from "cloudinary";
 import { uploadToCloudinary } from '../utills/newCloud';
-import { User } from "../models/userSchema";
+import { User, UserInterface } from "../models/userSchema";
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import { errorResponse, successResponse, successResponseLogin } from '../utills/helperMethods';
@@ -170,7 +170,7 @@ export const createImagePost = async (req: Request, res: Response) => {
         const { content, postType, visibleTo }: PostInterface = req.body;
         const imageUploadPromises: Promise<string>[] = [];
         const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
-
+        console.log(filesWithImage)
 
         if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
             filesWithImage.image.forEach((file) => {
@@ -181,6 +181,7 @@ export const createImagePost = async (req: Request, res: Response) => {
 
         try {
             const imageUrls = await Promise.all(imageUploadPromises);
+            console.log(imageUrls)
             const post = await Post.create({
                 userId: user._id,
                 fullName: user.firstName + ' ' + user.lastName,
@@ -275,6 +276,48 @@ export const createFilePost = async (req: Request, res: Response) => {
                 visibleTo: visibleTo
             });
             return res.status(httpStatus.CREATED).json({ post });
+        } catch (error) {
+            console.error(error);
+            return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error creating post' });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+    }
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+    try {
+        const verified = req.headers.token as string;
+        const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+        const { _id } = token;
+
+        const user = await User.findOne({ _id });
+        if (!user) {
+            return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+        }
+
+        const { content, postType, visibleTo }: PostInterface = req.body;
+        const imageUploadPromises: Promise<string>[] = [];
+        const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
+        console.log(filesWithImage)
+
+        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+            filesWithImage.image.forEach((file) => {
+                const imageUploadPromise = uploadToCloudinary(file, 'image');
+                imageUploadPromises.push(imageUploadPromise);
+            });
+        }
+
+        try {
+            const imageUrls = await Promise.all(imageUploadPromises);
+            const update = await User.findOne({ _id: user._id });
+            if (update) {
+                update.profilePicture = imageUrls.join(',');
+                await update.save();
+                return res.status(httpStatus.OK).json({ message: 'Profile picture updated successfully', user: update });
+            }
+            return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
         } catch (error) {
             console.error(error);
             return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error creating post' });

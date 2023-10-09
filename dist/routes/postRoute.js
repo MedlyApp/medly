@@ -5,11 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const userAuth_1 = require("../middlewares/userAuth");
+const url = require('url');
+const tobi_1 = require("../utills/tobi");
 const multer_1 = __importDefault(require("multer"));
 const postController_1 = require("../controllers/postController");
 const storage = multer_1.default.memoryStorage();
 const upload = (0, multer_1.default)({ storage: storage });
 const router = express_1.default.Router();
+router.get('/google/test', tobi_1.googleAuth);
 router.post('/create/post', upload.fields([
     { name: 'image', maxCount: 5 },
     { name: 'video', maxCount: 1 },

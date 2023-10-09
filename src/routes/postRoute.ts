@@ -1,6 +1,8 @@
 import express, { Response, Request } from 'express';
 import { auth } from "../middlewares/userAuth";
+const url = require('url');
 import { uploadFile } from '../middlewares/cloudinary';
+import { googleAuth, oauth2Client } from '../utills/gogleAuth';
 import multer from "multer";
 import {
     replyPost, createPosts, createImagePost,
@@ -8,13 +10,16 @@ import {
     createFilePost, postLike, unlikePost,
     replyLike, unlikeReply
 } from '../controllers/postController';
-// import { replyPost } from '../controllers/postController';
 import { validatePost } from '../middlewares/validation';
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 
 const router = express.Router();
+
+router.get('/google/test', googleAuth);
+
+
 
 router.post('/create/post', upload.fields([
     { name: 'image', maxCount: 5 },
@@ -31,9 +36,6 @@ router.put('/post-like/:postId', auth, postLike);
 router.put('/post-unlike/:postId', auth, unlikePost);
 router.put('/comment-like/:replyId', auth, replyLike);
 router.put('/comment-unlike/:postId', auth, unlikeReply);
-
-
-
 
 
 

@@ -148,6 +148,7 @@ const createImagePost = async (req, res) => {
         const { content, postType, visibleTo } = req.body;
         const imageUploadPromises = [];
         const filesWithImage = req.files;
+        console.log(filesWithImage);
         if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
             filesWithImage.image.forEach((file) => {
                 const imageUploadPromise = (0, newCloud_1.uploadToCloudinary)(file, 'image');
@@ -156,6 +157,7 @@ const createImagePost = async (req, res) => {
         }
         try {
             const imageUrls = await Promise.all(imageUploadPromises);
+            console.log(imageUrls);
             const post = await postSchema_1.Post.create({
                 userId: user._id,
                 fullName: user.firstName + ' ' + user.lastName,

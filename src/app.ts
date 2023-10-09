@@ -7,17 +7,16 @@ import bodyParser from 'body-parser';
 import logger from 'morgan';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import http from 'http';
-import multer from 'multer';
+import http from 'http'; // Import http module for WebSocket
 import userRouter from './routes/userRoute';
 import indexRouter from './routes/indexRoute';
 import postRouter from './routes/postRoute';
-dotenv.config()
-dbConnect()
+import { Server } from 'socket.io';
+
+dotenv.config();
+dbConnect();
 
 const app = express();
-// const upload = multer();
-
 const port = process.env.PORT;
 const server = http.createServer(app);
 
@@ -27,8 +26,22 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, './public')));
-app.use(express.json())
+app.use(express.json());
 app.use(cors());
+
+const io = new Server(server);
+
+io.on('connection', (socket) => {
+    console.log('A user connected');
+
+    socket.on('chatMessage', (message) => {
+        io.emit('message', message);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
+    });
+});
 
 app.use('/', indexRouter);
 app.use('/medly/user', userRouter);
@@ -36,17 +49,14 @@ app.use('/medly/', postRouter);
 app.use('/medly/', postRouter);
 
 
-
-app.use(function (err: createError.HttpError, req: express.Request, res: express.Response, _next: express.NextFunction,) {
+app.use(function (err: createError.HttpError, req: express.Request, res: express.Response, _next: express.NextFunction) {
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
     res.status(err.status || 500);
 });
 
-
 server.listen(port, () => {
-    console.log(`Server is listening on port ${port}`)
-})
-
+    console.log(`Server is listening on port ${port}`);
+});
 
 export default app;

@@ -1,27 +1,31 @@
-import mongoose, { Document, ObjectId } from 'mongoose';
+import mongoose, { Document, Schema, Types, ObjectId } from 'mongoose';
+
+interface Comment {
+    userId: Types.ObjectId;
+    text: string;
+}
+
+interface Member {
+    user: ObjectId;
+    status: string;
+}
 
 export interface GroupPostInterface extends Document {
-    // groupId: ObjectId;
     userId: ObjectId;
-    content: string;
     groupName: string;
     aboutGroup: string;
-    likes?: mongoose.Types.ObjectId[];
-    comments?: {
-        userId: mongoose.Types.ObjectId;
-        text: string;
-    }[];
-    reposts?: mongoose.Types.ObjectId[];
+    content: string;
+    members: Member[];
+    likes: ObjectId[];
+    comments: Comment[];
+    reposts: ObjectId[];
     createdAt: Date;
 }
 
-const groupPostSchema = new mongoose.Schema<GroupPostInterface>({
-    // groupId: {
-    //     type: mongoose.Types.ObjectId, ref: "Group",
-    //     required: true,
-    // },
+const groupPostSchema = new Schema<GroupPostInterface>({
     userId: {
-        type: mongoose.Types.ObjectId, ref: "User",
+        type: Types.ObjectId,
+        ref: "User",
         required: true,
     },
     groupName: {
@@ -36,14 +40,29 @@ const groupPostSchema = new mongoose.Schema<GroupPostInterface>({
         type: String,
         required: true,
     },
-    likes: {
-        type: [mongoose.Types.ObjectId], ref: "User",
-        default: [],
-    },
+    members: [
+        {
+            user: {
+                type: Types.ObjectId,
+                ref: 'User',
+            },
+            status: {
+                type: String, enum: ['pending', 'joined', 'rejected'],
+                default: 'pending',
+            },
+        },
+    ],
+    likes: [
+        {
+            type: Types.ObjectId,
+            ref: "User",
+        },
+    ],
     comments: [
         {
             userId: {
-                type: mongoose.Types.ObjectId, ref: "User",
+                type: Types.ObjectId,
+                ref: "User",
                 required: true,
             },
             text: {
@@ -52,10 +71,13 @@ const groupPostSchema = new mongoose.Schema<GroupPostInterface>({
             },
         },
     ],
-    reposts: {
-        type: [mongoose.Types.ObjectId], ref: "GroupPost",
-        default: [],
-    },
+    reposts: [
+        {
+            type: Types.ObjectId,
+            ref: "GroupPost",
+            required: true,
+        },
+    ],
     createdAt: {
         type: Date,
         default: Date.now,

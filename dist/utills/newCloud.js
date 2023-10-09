@@ -17,7 +17,7 @@ cloudinary_1.v2.config({
 const uploadToCloudinary = async (file, resourceType) => {
     const fileStream = streamifier_1.default.createReadStream(file.buffer);
     return new Promise((resolve, reject) => {
-        const uploadStream = cloudinary_1.v2.uploader.upload_stream({ resource_type: resourceType }, (error, result) => {
+        const uploadStream = cloudinary_1.v2.uploader.upload_stream({ resource_type: resourceType === 'audio' ? 'raw' : resourceType }, (error, result) => {
             if (error) {
                 reject(error);
             }

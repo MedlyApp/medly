@@ -9,13 +9,16 @@ export interface PostInterface extends Document {
     userId: ObjectId;
     groupId: ObjectId;
     content: string;
+    postType: string;
     profilePicture: string;
     fullName: string;
     commentCount: number;
-    image?: UploadType[];
-    video?: string;
-    file?: UploadType[];
+    image?: string[];
+    video?: string[];
+    audio?: string[];
+    file?: string[];
     likes?: ObjectId[];
+    likesCount: number;
     comments?: Comment[];
     reposts?: Repost[];
     emoji?: string;
@@ -33,8 +36,7 @@ export interface Comment extends Document {
     updatedAt: Date;
     likesCount: number;
     commentCount: number;
-    image?: string;
-    mediaUrls?: string[];
+    image?: string[];
     emoji?: string;
 
 }

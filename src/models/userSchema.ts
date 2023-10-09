@@ -8,6 +8,10 @@ export interface SocialLinks {
 }
 
 export interface UserInterface extends Document {
+    id?: string;
+    googleAccessToken?: string;
+    googleRefreshToken?: string;
+    googleId: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -26,6 +30,10 @@ export interface UserInterface extends Document {
 }
 
 const userSchema = new mongoose.Schema<UserInterface>({
+    id: { type: String },
+    googleId: { type: String },
+    googleAccessToken: { type: String },
+    googleRefreshToken: { type: String },
     firstName: {
         type: String,
         required: true,

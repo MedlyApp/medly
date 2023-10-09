@@ -3,7 +3,9 @@ import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { userRequest } from '../express';
+import { v2 as cloudinary } from "cloudinary";
+import { uploadToCloudinary } from '../utills/newCloud';
+import { userRequest } from '../types/express';
 import { generateLoginToken } from '../utills/helperMethods';
 import { errorResponse, successResponse, successResponseLogin } from '../utills/helperMethods';
 import mailer from '../mailers/sendMail';
@@ -57,7 +59,7 @@ export const getOtp = async (req: Request, res: Response, next: NextFunction) =>
         const findUser = await User.findOne({ $or: [{ email: req.body.email }, { phoneNumber: req.body.phoneNumber }] });
 
         if (!findUser) {
-            return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+            return errorResponse(res, 'User credential not found', httpStatus.NOT_FOUND);
         }
         const convert = findUser.toJSON();
         const { otp, otp_expiry } = GenerateOtp();
@@ -75,7 +77,7 @@ export const getOtp = async (req: Request, res: Response, next: NextFunction) =>
         updateOtp?.save();
 
         await mailer.sendEmail(mailOptions.from, mailOptions.to, mailOptions.subject, mailOptions.html);
-        sendSms(convert.phoneNumber, `Your OTP is ${otp}`);
+        // sendSms(convert.phoneNumber, `Your OTP is ${otp}`);
         return successResponse(res, 'OTP sent successfully', httpStatus.OK, {});
 
 
@@ -211,25 +213,37 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
 }
 
-export const updateProfilePicture = async (req: userRequest, res: Response, next: NextFunction) => {
+export const updateProfilePicture = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const verified = req.headers.token as string;
         const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
         const { _id } = token;
-        const { profilePicture } = req.body
         const user = await User.findOne({ _id });
         if (!user) {
             return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
         }
-        console.log("Req file", req.file);
-        if (!req.file) {
-            return errorResponse(res, 'No file uploaded', httpStatus.BAD_REQUEST);
+
+        const { profilePicture } = req.body
+        const imageUploadPromises: Promise<string>[] = [];
+        const filesWithImage: { image?: Express.Multer.File[] } = req.files as {
+            image?: Express.Multer.File[]
+        };
+        console.log("File eith image", filesWithImage);
+
+
+        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+            filesWithImage.image.forEach((file) => {
+                const imageUploadPromise = uploadToCloudinary(file, 'image');
+                imageUploadPromises.push(imageUploadPromise);
+                console.log("Image upload promise", imageUploadPromise);
+            });
         }
-        const update = await User.findByIdAndUpdate(user._id, { profilePicture: req.file.path }, { new: true });
-        console.log("Update here", update);
+        const imageUrls = await Promise.all(imageUploadPromises);
+        const update = await User.findByIdAndUpdate(user._id,
+            { profilePicture: imageUrls }, { new: true });
+
         return res.status(httpStatus.OK).json({
-            message: 'Profile picture updated successfully',
-            user: update,
+            message: 'Profile picture updated successfully', user: update
         });
 
 

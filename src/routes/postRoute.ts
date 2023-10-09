@@ -27,10 +27,10 @@ router.post('/create/post', upload.fields([
     { name: 'audio', maxCount: 5 },
     { name: 'files', maxCount: 5 },
 ]), createPosts);
-router.post('/create/post-video', upload.single('video'), createVideoPost);
-router.post('/create/post-image', upload.fields([{ name: 'image', maxCount: 5 }]), createImagePost);
-router.post('/create/post-audio', upload.fields([{ name: 'audio', maxCount: 5 }]), createAudioPost);
-router.post('/create/post-file', upload.fields([{ name: 'file', maxCount: 5 }]), createAudioPost);
+router.post('/create/post-video', upload.single('video'), auth, createVideoPost);
+router.post('/create/post-image', upload.fields([{ name: 'image', maxCount: 5 }]), auth, createImagePost);
+router.post('/create/post-audio', upload.fields([{ name: 'audio', maxCount: 5 }]), auth, createAudioPost);
+router.post('/create/post-file', upload.fields([{ name: 'file', maxCount: 5 }]), auth, createAudioPost);
 router.post('/reply/post/:id', upload.fields([{ name: 'image', maxCount: 5 }]), auth, replyPost);
 router.put('/post-like/:postId', auth, postLike);
 router.put('/post-unlike/:postId', auth, unlikePost);

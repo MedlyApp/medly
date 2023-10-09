@@ -7,8 +7,8 @@ import multer from "multer";
 import {
     replyPost, createPosts, createImagePost,
     createVideoPost, createAudioPost,
-    createFilePost, postLike, unlikePost,
-    replyLike, unlikeReply
+    postLike, unlikePost,
+    replyLike, unlikeReply, updateProfile
 } from '../controllers/postController';
 import { validatePost } from '../middlewares/validation';
 const storage = multer.memoryStorage();
@@ -26,7 +26,7 @@ router.post('/create/post', upload.fields([
     { name: 'video', maxCount: 1 },
     { name: 'audio', maxCount: 5 },
     { name: 'files', maxCount: 5 },
-]), createPosts);
+]), auth, createPosts);
 router.post('/create/post-video', upload.single('video'), auth, createVideoPost);
 router.post('/create/post-image', upload.fields([{ name: 'image', maxCount: 5 }]), auth, createImagePost);
 router.post('/create/post-audio', upload.fields([{ name: 'audio', maxCount: 5 }]), auth, createAudioPost);
@@ -36,6 +36,7 @@ router.put('/post-like/:postId', auth, postLike);
 router.put('/post-unlike/:postId', auth, unlikePost);
 router.put('/comment-like/:replyId', auth, replyLike);
 router.put('/comment-unlike/:postId', auth, unlikeReply);
+router.post('/upload/profile-picture', upload.fields([{ name: 'image', maxCount: 1 }]), auth, updateProfile);
 
 
 

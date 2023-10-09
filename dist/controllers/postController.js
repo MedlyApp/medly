@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unlikeReply = exports.replyLike = exports.unlikePost = exports.postLike = exports.replyPost = exports.createFilePost = exports.createAudioPost = exports.createImagePost = exports.createVideoPost = exports.createPosts = void 0;
+exports.unlikeReply = exports.replyLike = exports.unlikePost = exports.postLike = exports.replyPost = exports.updateProfile = exports.createFilePost = exports.createAudioPost = exports.createImagePost = exports.createVideoPost = exports.createPosts = void 0;
 const postSchema_1 = require("../models/postSchema");
 const newCloud_1 = require("../utills/newCloud");
 const userSchema_1 = require("../models/userSchema");
@@ -107,9 +107,9 @@ const createVideoPost = async (req, res) => {
         const { content, postType, visibleTo } = req.body;
         const videoUploadPromises = [];
         const filesWithVideo = req.files;
-        if (!filesWithVideo) {
-            return res.status(http_status_1.default.BAD_REQUEST).json({ message: 'Provide only video' });
-        }
+        // if (!filesWithVideo) {
+        //     return res.status(httpStatus.BAD_REQUEST).json({ message: 'Provide only video' });
+        // }
         if (filesWithVideo && filesWithVideo.video) {
             const videoUploadPromise = (0, newCloud_1.uploadToCloudinary)(filesWithVideo.video[0], 'video');
             videoUploadPromises.push(videoUploadPromise);
@@ -148,7 +148,6 @@ const createImagePost = async (req, res) => {
         const { content, postType, visibleTo } = req.body;
         const imageUploadPromises = [];
         const filesWithImage = req.files;
-        console.log(filesWithImage);
         if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
             filesWithImage.image.forEach((file) => {
                 const imageUploadPromise = (0, newCloud_1.uploadToCloudinary)(file, 'image');
@@ -157,11 +156,11 @@ const createImagePost = async (req, res) => {
         }
         try {
             const imageUrls = await Promise.all(imageUploadPromises);
-            console.log(imageUrls);
             const post = await postSchema_1.Post.create({
                 userId: user._id,
                 fullName: user.firstName + ' ' + user.lastName,
                 content,
+                postType,
                 image: imageUrls,
                 visibleTo: visibleTo
             });
@@ -202,6 +201,7 @@ const createAudioPost = async (req, res) => {
                 userId: user._id,
                 fullName: user.firstName + ' ' + user.lastName,
                 content,
+                postType,
                 audio: audioUrls,
                 visibleTo: visibleTo
             });
@@ -258,6 +258,45 @@ const createFilePost = async (req, res) => {
     }
 };
 exports.createFilePost = createFilePost;
+const updateProfile = async (req, res) => {
+    try {
+        const verified = req.headers.token;
+        const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+        const { _id } = token;
+        const user = await userSchema_1.User.findOne({ _id });
+        if (!user) {
+            return res.status(http_status_1.default.NOT_FOUND).json({ message: 'User not found' });
+        }
+        const { content, visibleTo } = req.body;
+        const imageUploadPromises = [];
+        const filesWithImage = req.files;
+        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+            filesWithImage.image.forEach((file) => {
+                const imageUploadPromise = (0, newCloud_1.uploadToCloudinary)(file, 'image');
+                imageUploadPromises.push(imageUploadPromise);
+            });
+        }
+        try {
+            const imageUrls = await Promise.all(imageUploadPromises);
+            const update = await userSchema_1.User.findOne({ _id: user._id });
+            if (update) {
+                update.profilePicture = imageUrls.join(',');
+                await update.save();
+                return res.status(http_status_1.default.OK).json({ message: 'Profile picture updated successfully', user: update });
+            }
+            return res.status(http_status_1.default.NOT_FOUND).json({ message: 'User not found' });
+        }
+        catch (error) {
+            console.error(error);
+            return res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json({ message: 'Error creating post' });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+    }
+};
+exports.updateProfile = updateProfile;
 const replyPost = async (req, res) => {
     var _a;
     try {

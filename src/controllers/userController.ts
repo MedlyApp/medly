@@ -188,7 +188,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
         const otpFound = await Otp.findOne({ otp });
 
         if (!otpFound) {
-            return errorResponse(res, 'Email not found', httpStatus.NOT_FOUND);
+            return errorResponse(res, 'No detail found for this otp ', httpStatus.NOT_FOUND);
         }
 
         if (otpFound.otp !== otp) {

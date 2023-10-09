@@ -4,13 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const tobi_1 = require("../utills/tobi");
+const gogleAuth_1 = require("../utills/gogleAuth");
 const url = require('url');
 const router = express_1.default.Router();
 router.get('/', (req, res) => {
     res.send('Welcome to medly social app ✍️');
 });
-router.get('/auth/google/callback', tobi_1.googleAuthCallback);
+router.get('/auth/google/callback', gogleAuth_1.googleAuthCallback);
 // router.get('/google/auth/callback', async (req: Request, res: Response) => {
 //     try {
 //         if (req.url.startsWith('/oauth2callback')) {

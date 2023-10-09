@@ -170,7 +170,6 @@ export const createImagePost = async (req: Request, res: Response) => {
         const { content, postType, visibleTo }: PostInterface = req.body;
         const imageUploadPromises: Promise<string>[] = [];
         const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
-        console.log(filesWithImage)
 
         if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
             filesWithImage.image.forEach((file) => {
@@ -181,11 +180,11 @@ export const createImagePost = async (req: Request, res: Response) => {
 
         try {
             const imageUrls = await Promise.all(imageUploadPromises);
-            console.log(imageUrls)
             const post = await Post.create({
                 userId: user._id,
                 fullName: user.firstName + ' ' + user.lastName,
                 content,
+                postType,
                 image: imageUrls,
                 visibleTo: visibleTo
             });
@@ -229,6 +228,7 @@ export const createAudioPost = async (req: Request, res: Response) => {
                 userId: user._id,
                 fullName: user.firstName + ' ' + user.lastName,
                 content,
+                postType,
                 audio: audioUrls,
                 visibleTo: visibleTo
             });
@@ -272,7 +272,7 @@ export const createFilePost = async (req: Request, res: Response) => {
                 userId: user._id,
                 fullName: user.firstName + ' ' + user.lastName,
                 content,
-                files: fileUrls, // Update the field name to 'files'
+                files: fileUrls,
                 visibleTo: visibleTo
             });
             return res.status(httpStatus.CREATED).json({ post });
@@ -297,10 +297,10 @@ export const updateProfile = async (req: Request, res: Response) => {
             return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
         }
 
-        const { content, postType, visibleTo }: PostInterface = req.body;
+        const { content, visibleTo }: PostInterface = req.body;
         const imageUploadPromises: Promise<string>[] = [];
         const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
-        console.log(filesWithImage)
+
 
         if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
             filesWithImage.image.forEach((file) => {

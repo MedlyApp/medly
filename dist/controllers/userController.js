@@ -143,7 +143,7 @@ const resetPassword = async (req, res, next) => {
     try {
         const otpFound = await otpSchema_1.Otp.findOne({ otp });
         if (!otpFound) {
-            return (0, helperMethods_2.errorResponse)(res, 'Email not found', http_status_1.default.NOT_FOUND);
+            return (0, helperMethods_2.errorResponse)(res, 'No detail found for this otp ', http_status_1.default.NOT_FOUND);
         }
         if (otpFound.otp !== otp) {
             return (0, helperMethods_2.errorResponse)(res, 'Invalid OTP', http_status_1.default.BAD_REQUEST);

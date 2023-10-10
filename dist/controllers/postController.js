@@ -107,9 +107,9 @@ const createVideoPost = async (req, res) => {
         const { content, postType, visibleTo } = req.body;
         const videoUploadPromises = [];
         const filesWithVideo = req.files;
-        // if (!filesWithVideo) {
-        //     return res.status(httpStatus.BAD_REQUEST).json({ message: 'Provide only video' });
-        // }
+        if (!filesWithVideo) {
+            return res.status(http_status_1.default.BAD_REQUEST).json({ message: 'Provide only video' });
+        }
         if (filesWithVideo && filesWithVideo.video) {
             const videoUploadPromise = (0, newCloud_1.uploadToCloudinary)(filesWithVideo.video[0], 'video');
             videoUploadPromises.push(videoUploadPromise);
@@ -120,6 +120,7 @@ const createVideoPost = async (req, res) => {
                 userId: user._id,
                 fullName: user.firstName + ' ' + user.lastName,
                 content,
+                postType,
                 video: videoUrls[0],
                 visibleTo: visibleTo
             });

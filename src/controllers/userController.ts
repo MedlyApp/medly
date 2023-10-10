@@ -61,6 +61,10 @@ export const getOtp = async (req: Request, res: Response, next: NextFunction) =>
         if (!findUser) {
             return errorResponse(res, 'User credential not found', httpStatus.NOT_FOUND);
         }
+        if (findUser.isVerified) {
+            return errorResponse(res, 'User already verified', httpStatus.CONFLICT);
+        }
+
         const convert = findUser.toJSON();
         const { otp, otp_expiry } = GenerateOtp();
         const updateOtp = await Otp.findOneAndUpdate(

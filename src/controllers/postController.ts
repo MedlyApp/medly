@@ -128,21 +128,20 @@ export const createVideoPost = async (req: Request, res: Response) => {
 
         const videoUploadPromises: Promise<string>[] = [];
         const filesWithVideo: { video?: Express.Multer.File[] } = req.files as { video?: Express.Multer.File[] };
-        // if (!filesWithVideo) {
-        //     return res.status(httpStatus.BAD_REQUEST).json({ message: 'Provide only video' });
-        // }
+        if (!filesWithVideo) {
+            return res.status(httpStatus.BAD_REQUEST).json({ message: 'Provide only video' });
+        }
         if (filesWithVideo && filesWithVideo.video) {
             const videoUploadPromise = uploadToCloudinary(filesWithVideo.video[0], 'video');
             videoUploadPromises.push(videoUploadPromise);
         }
-
-
         try {
             const videoUrls = await Promise.all(videoUploadPromises);
             const post = await Post.create({
                 userId: user._id,
                 fullName: user.firstName + ' ' + user.lastName,
                 content,
+                postType,
                 video: videoUrls[0],
                 visibleTo: visibleTo
             });

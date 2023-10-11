@@ -8,7 +8,12 @@ import {
     replyPost, createPosts, createImagePost,
     createVideoPost, createAudioPost,
     postLike, unlikePost,
-    replyLike, unlikeReply, updateProfile
+    replyLike, unlikeReply, updateProfile,
+    getAllPost, getSinglePost, getAllComment,
+    getSingleComment, editPost, editComment,
+    deletePost, deleteComment
+
+
 } from '../controllers/postController';
 import { validatePost } from '../middlewares/validation';
 const storage = multer.memoryStorage();
@@ -37,6 +42,14 @@ router.put('/post-unlike/:postId', auth, unlikePost);
 router.put('/comment-like/:replyId', auth, replyLike);
 router.put('/comment-unlike/:postId', auth, unlikeReply);
 router.post('/upload/profile-picture', upload.fields([{ name: 'image', maxCount: 1 }]), auth, updateProfile);
+router.get('/get/post', auth, getAllPost);
+router.get('/get/post/:postId', auth, getSinglePost);
+router.get('/get/comment/:postId', auth, getAllComment);
+router.get('/get/comment/:postId/:replyId', auth, getSingleComment);
+router.put('/edit/post/:postId', auth, editPost);
+router.put('/edit/comment/:postId/:replyId', auth, editComment);
+router.delete('/delete/post/:postId', auth, deletePost);
+router.delete('/delete/comment/:postId/:replyId', auth, deleteComment);
 
 
 

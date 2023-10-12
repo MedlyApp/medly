@@ -29,5 +29,13 @@ router.put('/post-unlike/:postId', userAuth_1.auth, postController_1.unlikePost)
 router.put('/comment-like/:replyId', userAuth_1.auth, postController_1.replyLike);
 router.put('/comment-unlike/:postId', userAuth_1.auth, postController_1.unlikeReply);
 router.post('/upload/profile-picture', upload.fields([{ name: 'image', maxCount: 1 }]), userAuth_1.auth, postController_1.updateProfile);
+router.get('/get-all-post', userAuth_1.auth, postController_1.getAllPost);
+router.get('/get/post/:postId', userAuth_1.auth, postController_1.getSinglePost);
+router.get('/get/comment/:postId', userAuth_1.auth, postController_1.getAllComment);
+router.get('/get/comment/:postId/:replyId', userAuth_1.auth, postController_1.getSingleComment);
+router.put('/edit/post/:postId', userAuth_1.auth, postController_1.editPost);
+router.put('/edit/comment/:postId/:replyId', userAuth_1.auth, postController_1.editComment);
+router.delete('/delete/post/:postId', userAuth_1.auth, postController_1.deletePost);
+router.delete('/delete/comment/:postId/:replyId', userAuth_1.auth, postController_1.deleteComment);
 exports.default = router;
 //# sourceMappingURL=postRoute.js.map

@@ -47,6 +47,9 @@ const getOtp = async (req, res, next) => {
         if (!findUser) {
             return (0, helperMethods_2.errorResponse)(res, 'User credential not found', http_status_1.default.NOT_FOUND);
         }
+        if (findUser.isVerified) {
+            return (0, helperMethods_2.errorResponse)(res, 'User already verified', http_status_1.default.CONFLICT);
+        }
         const convert = findUser.toJSON();
         const { otp, otp_expiry } = (0, mailTemplate_1.GenerateOtp)();
         const updateOtp = await otpSchema_1.Otp.findOneAndUpdate({ userId: findUser._id }, { otp, otp_expiry }, { upsert: true, new: true });

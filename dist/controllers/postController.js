@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unlikeReply = exports.replyLike = exports.unlikePost = exports.postLike = exports.replyPost = exports.updateProfile = exports.createFilePost = exports.createAudioPost = exports.createImagePost = exports.createVideoPost = exports.createPosts = void 0;
+exports.getResharePost = exports.resharePost = exports.deleteComment = exports.deletePost = exports.editComment = exports.editPost = exports.getSingleComment = exports.getAllComment = exports.getSinglePost = exports.getAllPost = exports.unlikeReply = exports.replyLike = exports.unlikePost = exports.postLike = exports.replyPost = exports.updateProfile = exports.createFilePost = exports.createAudioPost = exports.createImagePost = exports.createVideoPost = exports.createPosts = void 0;
 const postSchema_1 = require("../models/postSchema");
 const newCloud_1 = require("../utills/newCloud");
 const userSchema_1 = require("../models/userSchema");
+const mongoose_1 = __importDefault(require("mongoose"));
 const http_status_1 = __importDefault(require("http-status"));
 const helperMethods_1 = require("../utills/helperMethods");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -460,4 +461,195 @@ const unlikeReply = async (req, res) => {
     }
 };
 exports.unlikeReply = unlikeReply;
+const getAllPost = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const findPosts = await postSchema_1.Post.find({ userId: user._id }).sort({ createdAt: -1 });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Post not found', http_status_1.default.NOT_FOUND);
+    }
+    return (0, helperMethods_1.successResponse)(res, 'Post found', http_status_1.default.OK, findPosts);
+};
+exports.getAllPost = getAllPost;
+const getSinglePost = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const { postId } = req.params;
+    const convertId = new mongoose_1.default.Types.ObjectId(postId);
+    const findPosts = await postSchema_1.Post.find({ _id: convertId, userId: user._id }).sort({ createdAt: -1 });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Post not found', http_status_1.default.NOT_FOUND);
+    }
+    return (0, helperMethods_1.successResponse)(res, 'Post found', http_status_1.default.OK, findPosts);
+};
+exports.getSinglePost = getSinglePost;
+const getAllComment = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const findPosts = await postSchema_1.CommentT.find({ userId: user._id }).sort({ createdAt: -1 });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Comment not found', http_status_1.default.NOT_FOUND);
+    }
+    return (0, helperMethods_1.successResponse)(res, 'Comment found', http_status_1.default.OK, findPosts);
+};
+exports.getAllComment = getAllComment;
+const getSingleComment = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const { postId } = req.params;
+    const convertId = new mongoose_1.default.Types.ObjectId(postId);
+    const findPosts = await postSchema_1.CommentT.find({ _id: convertId, userId: user._id }).sort({ createdAt: -1 });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Comment not found', http_status_1.default.NOT_FOUND);
+    }
+    return (0, helperMethods_1.successResponse)(res, 'Comment found', http_status_1.default.OK, findPosts);
+};
+exports.getSingleComment = getSingleComment;
+const editPost = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const { postId } = req.params;
+    const convertId = new mongoose_1.default.Types.ObjectId(postId);
+    const findPosts = await postSchema_1.Post.findOne({ _id: convertId, userId: user._id });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Post not found', http_status_1.default.NOT_FOUND);
+    }
+    findPosts.content = req.body.content;
+    findPosts.emoji = req.body.emoji;
+    findPosts.likes = req.body.likes;
+    findPosts.image = req.body.image;
+    await findPosts.save();
+    return (0, helperMethods_1.successResponse)(res, 'Post updated', http_status_1.default.OK, findPosts);
+};
+exports.editPost = editPost;
+const editComment = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const { postId } = req.params;
+    const convertId = new mongoose_1.default.Types.ObjectId(postId);
+    const findPosts = await postSchema_1.CommentT.findOne({ _id: convertId, userId: user._id });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Comment not found', http_status_1.default.NOT_FOUND);
+    }
+    findPosts.body = req.body.body;
+    findPosts.emoji = req.body.emoji;
+    findPosts.likes = req.body.likes;
+    findPosts.image = req.body.image;
+    await findPosts.save();
+    return (0, helperMethods_1.successResponse)(res, 'Comment updated', http_status_1.default.OK, findPosts);
+};
+exports.editComment = editComment;
+const deletePost = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const { postId } = req.params;
+    const convertId = new mongoose_1.default.Types.ObjectId(postId);
+    const findPosts = await postSchema_1.Post.findOne({ _id: convertId, userId: user._id });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Post not found', http_status_1.default.NOT_FOUND);
+    }
+    await findPosts.remove();
+    return (0, helperMethods_1.successResponse)(res, 'Post deleted', http_status_1.default.OK, findPosts);
+};
+exports.deletePost = deletePost;
+const deleteComment = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const { postId } = req.params;
+    const convertId = new mongoose_1.default.Types.ObjectId(postId);
+    const findPosts = await postSchema_1.CommentT.findOne({ _id: convertId, userId: user._id });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Comment not found', http_status_1.default.NOT_FOUND);
+    }
+    await findPosts.remove();
+    return (0, helperMethods_1.successResponse)(res, 'Comment deleted', http_status_1.default.OK, findPosts);
+};
+exports.deleteComment = deleteComment;
+const resharePost = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const { postId } = req.params;
+    const convertId = new mongoose_1.default.Types.ObjectId(postId);
+    const findPosts = await postSchema_1.Post.findOne({ _id: convertId, userId: user._id });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Post not found', http_status_1.default.NOT_FOUND);
+    }
+    const reshare = await postSchema_1.Post.create({
+        userId: user._id,
+        fullName: user.firstName + ' ' + user.lastName,
+        content: findPosts.content,
+        image: findPosts.image,
+        audio: findPosts.audio,
+        video: findPosts.video,
+        file: findPosts.file,
+        visibleTo: findPosts.visibleTo,
+        postType: findPosts.postType,
+        reshare: findPosts._id
+    });
+    return (0, helperMethods_1.successResponse)(res, 'Post reshared', http_status_1.default.OK, reshare);
+};
+exports.resharePost = resharePost;
+const getResharePost = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const { postId } = req.params;
+    const convertId = new mongoose_1.default.Types.ObjectId(postId);
+    const findPosts = await postSchema_1.Post.findOne({ _id: convertId, userId: user._id });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Post not found', http_status_1.default.NOT_FOUND);
+    }
+    const reshare = await postSchema_1.Post.find({ reshare: findPosts._id });
+    return (0, helperMethods_1.successResponse)(res, 'Post found', http_status_1.default.OK, reshare);
+};
+exports.getResharePost = getResharePost;
 //# sourceMappingURL=postController.js.map

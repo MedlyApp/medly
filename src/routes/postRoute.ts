@@ -42,7 +42,7 @@ router.put('/post-unlike/:postId', auth, unlikePost);
 router.put('/comment-like/:replyId', auth, replyLike);
 router.put('/comment-unlike/:postId', auth, unlikeReply);
 router.post('/upload/profile-picture', upload.fields([{ name: 'image', maxCount: 1 }]), auth, updateProfile);
-router.get('/get/post', auth, getAllPost);
+router.get('/get-all-post', auth, getAllPost);
 router.get('/get/post/:postId', auth, getSinglePost);
 router.get('/get/comment/:postId', auth, getAllComment);
 router.get('/get/comment/:postId/:replyId', auth, getSingleComment);

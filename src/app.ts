@@ -46,7 +46,7 @@ io.on('connection', (socket) => {
 app.use('/', indexRouter);
 app.use('/medly/user', userRouter);
 app.use('/medly/', postRouter);
-app.use('/medly/', postRouter);
+
 
 
 app.use(function (err: createError.HttpError, req: express.Request, res: express.Response, _next: express.NextFunction) {

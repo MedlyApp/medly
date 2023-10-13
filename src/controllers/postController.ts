@@ -541,6 +541,8 @@ export const getAllPost = async (req: Request, res: Response) => {
     return successResponse(res, 'Post found', httpStatus.OK, findPosts);
 
 };
+
+
 export const getSinglePost = async (req: Request, res: Response) => {
     const verified = req.headers.token as string;
     const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;

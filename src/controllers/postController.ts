@@ -346,39 +346,57 @@ export const replyPost = async (req: Request, res: Response): Promise<unknown> =
         if (!post) {
             return errorResponse(res, 'Post not found', httpStatus.NOT_FOUND);
         }
-        const imageUploadPromises: Promise<string>[] = [];
-        const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
 
+        if (req.files && 'image' in req.files && Array.isArray(req.files.image)) {
+            const imageUploadPromises: Promise<string>[] = [];
 
-        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
-            filesWithImage.image.forEach((file) => {
+            req.files.image.forEach((file) => {
                 const imageUploadPromise = uploadToCloudinary(file, 'image');
                 imageUploadPromises.push(imageUploadPromise);
             });
+
+            const imageUrls = await Promise.all(imageUploadPromises);
+            const image = imageUrls.length > 0 ? imageUrls : undefined; // Make 'image' optional
+
+            const reply = new CommentT({
+                postId: post._id,
+                body: req.body.body,
+                createdBy: user._id,
+                profileImage: user.profilePicture,
+                image,
+                likes: req.body.likes,
+                emoji: req.body.emoji,
+            });
+
+            const savedReply = await reply.save();
+            post.comments?.push(savedReply._id);
+            post.commentCount = post.comments!.length;
+            await post.save();
+            return successResponse(res, 'Reply created successfully', httpStatus.CREATED, savedReply);
+        } else {
+
+            const reply = new CommentT({
+                postId: post._id,
+                body: req.body.body,
+                createdBy: user._id,
+                profileImage: user.profilePicture,
+                likes: req.body.likes,
+                emoji: req.body.emoji,
+            });
+
+            const savedReply = await reply.save();
+            post.comments?.push(savedReply._id);
+            post.commentCount = post.comments!.length;
+            await post.save();
+            return successResponse(res, 'Reply created successfully', httpStatus.CREATED, savedReply);
         }
-        const imageUrls = await Promise.all(imageUploadPromises);
-        const reply = new CommentT({
-            postId: post._id,
-            body: req.body.body,
-            createdBy: user._id,
-            profileImage: user.profilePicture,
-            image: imageUrls,
-            likes: req.body.likes,
-            emoji: req.body.emoji,
-
-        });
-
-        const savedReply = await reply.save();
-        await reply.save();
-        post.comments?.push(savedReply._id);
-        post.commentCount = post.comments!.length;
-        await post.save();
-        return successResponse(res, 'Reply created successfully', httpStatus.CREATED, savedReply);
-
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        return errorResponse(res, 'An error occurred', httpStatus.INTERNAL_SERVER_ERROR);
     }
-}
+};
+
+
 
 
 export const postLike = async (req: Request, res: Response) => {

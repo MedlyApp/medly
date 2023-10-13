@@ -300,7 +300,7 @@ const updateProfile = async (req, res) => {
 };
 exports.updateProfile = updateProfile;
 const replyPost = async (req, res) => {
-    var _a;
+    var _a, _b;
     try {
         const verified = req.headers.token;
         const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
@@ -313,33 +313,48 @@ const replyPost = async (req, res) => {
         if (!post) {
             return (0, helperMethods_1.errorResponse)(res, 'Post not found', http_status_1.default.NOT_FOUND);
         }
-        const imageUploadPromises = [];
-        const filesWithImage = req.files;
-        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
-            filesWithImage.image.forEach((file) => {
+        if (req.files && 'image' in req.files && Array.isArray(req.files.image)) {
+            const imageUploadPromises = [];
+            req.files.image.forEach((file) => {
                 const imageUploadPromise = (0, newCloud_1.uploadToCloudinary)(file, 'image');
                 imageUploadPromises.push(imageUploadPromise);
             });
+            const imageUrls = await Promise.all(imageUploadPromises);
+            const image = imageUrls.length > 0 ? imageUrls : undefined; // Make 'image' optional
+            const reply = new postSchema_1.CommentT({
+                postId: post._id,
+                body: req.body.body,
+                createdBy: user._id,
+                profileImage: user.profilePicture,
+                image,
+                likes: req.body.likes,
+                emoji: req.body.emoji,
+            });
+            const savedReply = await reply.save();
+            (_a = post.comments) === null || _a === void 0 ? void 0 : _a.push(savedReply._id);
+            post.commentCount = post.comments.length;
+            await post.save();
+            return (0, helperMethods_1.successResponse)(res, 'Reply created successfully', http_status_1.default.CREATED, savedReply);
         }
-        const imageUrls = await Promise.all(imageUploadPromises);
-        const reply = new postSchema_1.CommentT({
-            postId: post._id,
-            body: req.body.body,
-            createdBy: user._id,
-            profileImage: user.profilePicture,
-            image: imageUrls,
-            likes: req.body.likes,
-            emoji: req.body.emoji,
-        });
-        const savedReply = await reply.save();
-        await reply.save();
-        (_a = post.comments) === null || _a === void 0 ? void 0 : _a.push(savedReply._id);
-        post.commentCount = post.comments.length;
-        await post.save();
-        return (0, helperMethods_1.successResponse)(res, 'Reply created successfully', http_status_1.default.CREATED, savedReply);
+        else {
+            const reply = new postSchema_1.CommentT({
+                postId: post._id,
+                body: req.body.body,
+                createdBy: user._id,
+                profileImage: user.profilePicture,
+                likes: req.body.likes,
+                emoji: req.body.emoji,
+            });
+            const savedReply = await reply.save();
+            (_b = post.comments) === null || _b === void 0 ? void 0 : _b.push(savedReply._id);
+            post.commentCount = post.comments.length;
+            await post.save();
+            return (0, helperMethods_1.successResponse)(res, 'Reply created successfully', http_status_1.default.CREATED, savedReply);
+        }
     }
     catch (error) {
         console.log(error);
+        return (0, helperMethods_1.errorResponse)(res, 'An error occurred', http_status_1.default.INTERNAL_SERVER_ERROR);
     }
 };
 exports.replyPost = replyPost;

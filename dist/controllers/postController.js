@@ -484,7 +484,7 @@ const getAllPost = async (req, res) => {
     if (!user) {
         return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
     }
-    const findPosts = await postSchema_1.Post.find({ userId: user._id }).sort({ createdAt: -1 });
+    const findPosts = await postSchema_1.Post.find({}).sort({ createdAt: -1 });
     if (!findPosts) {
         return (0, helperMethods_1.errorResponse)(res, 'Post not found', http_status_1.default.NOT_FOUND);
     }

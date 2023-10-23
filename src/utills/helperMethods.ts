@@ -22,7 +22,7 @@ export const generateLoginToken = ({ _id, email }: UserToken): string => {
 export const generateAdminLoginToken = ({ _id, email }: Admin): string => {
     const pass = process.env.ADMIN_SECRET_KEY as string;
     const user = { _id, email }
-    return jwt.sign(user, pass, { expiresIn: '2h' });
+    return jwt.sign(user, pass, { expiresIn: '1d' });
     // return jwt.sign(user, pass, { expiresIn: '1d' });
 };
 

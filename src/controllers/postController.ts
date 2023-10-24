@@ -592,7 +592,7 @@ export const getAllComment = async (req: Request, res: Response) => {
         return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
     }
 
-    const findPosts = await CommentT.find({ userId: user._id }).sort({ createdAt: -1 });
+    const findPosts = await CommentT.find().sort({ createdAt: -1 });
     if (!findPosts) {
         return errorResponse(res, 'Comment not found', httpStatus.NOT_FOUND);
     }

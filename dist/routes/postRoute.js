@@ -31,7 +31,7 @@ router.put('/comment-like/:replyId', userAuth_1.auth, postController_1.replyLike
 router.put('/comment-unlike/:postId', userAuth_1.auth, postController_1.unlikeReply);
 router.get('/get-all-post', userAuth_1.auth, postController_1.getAllPost);
 router.get('/get/post/:postId', userAuth_1.auth, postController_1.getSinglePost);
-router.get('/get/comment/:postId', userAuth_1.auth, postController_1.getAllComment);
+router.get('/get/comments', userAuth_1.auth, postController_1.getAllComment);
 router.get('/get/comment/:postId/:replyId', userAuth_1.auth, postController_1.getSingleComment);
 router.put('/edit/post/:postId', userAuth_1.auth, postController_1.editPost);
 router.put('/edit/comment/:postId/:replyId', userAuth_1.auth, postController_1.editComment);

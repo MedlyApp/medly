@@ -16,7 +16,7 @@ exports.generateLoginToken = generateLoginToken;
 const generateAdminLoginToken = ({ _id, email }) => {
     const pass = process.env.ADMIN_SECRET_KEY;
     const user = { _id, email };
-    return jsonwebtoken_1.default.sign(user, pass, { expiresIn: '2h' });
+    return jsonwebtoken_1.default.sign(user, pass, { expiresIn: '1d' });
     // return jwt.sign(user, pass, { expiresIn: '1d' });
 };
 exports.generateAdminLoginToken = generateAdminLoginToken;

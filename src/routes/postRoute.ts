@@ -44,7 +44,7 @@ router.put('/comment-like/:replyId', auth, replyLike);
 router.put('/comment-unlike/:postId', auth, unlikeReply);
 router.get('/get-all-post', auth, getAllPost);
 router.get('/get/post/:postId', auth, getSinglePost);
-router.get('/get/comment/:postId', auth, getAllComment);
+router.get('/get/comments', auth, getAllComment);
 router.get('/get/comment/:postId/:replyId', auth, getSingleComment);
 router.put('/edit/post/:postId', auth, editPost);
 router.put('/edit/comment/:postId/:replyId', auth, editComment);

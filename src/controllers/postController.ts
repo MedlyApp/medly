@@ -361,7 +361,7 @@ export const replyPost = async (req: Request, res: Response): Promise<unknown> =
             const reply = new CommentT({
                 postId: post._id,
                 body: req.body.body,
-                createdBy: user._id,
+                createdBy: user.firstName + ' ' + user.lastName,
                 profileImage: user.profilePicture,
                 image,
                 likes: req.body.likes,
@@ -378,7 +378,7 @@ export const replyPost = async (req: Request, res: Response): Promise<unknown> =
             const reply = new CommentT({
                 postId: post._id,
                 body: req.body.body,
-                createdBy: user._id,
+                createdBy: user.firstName + ' ' + user.lastName,
                 profileImage: user.profilePicture,
                 likes: req.body.likes,
                 emoji: req.body.emoji,

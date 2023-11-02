@@ -71,7 +71,7 @@ const commentSchema = new mongoose.Schema<Comment>({
         required: true,
     },
     body: { type: String, required: true },
-    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    createdBy: { type: String, required: true },
     profileImage: { type: String, ref: "User" },
     likes: [{ type: Schema.Types.ObjectId, default: [], ref: 'User' }],
     likesCount: { type: Number, default: 0 },

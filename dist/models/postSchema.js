@@ -90,7 +90,7 @@ const commentSchema = new mongoose_1.default.Schema({
         required: true,
     },
     body: { type: String, required: true },
-    createdBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "User", required: true },
+    createdBy: { type: String, required: true },
     profileImage: { type: String, ref: "User" },
     likes: [{ type: mongoose_1.Schema.Types.ObjectId, default: [], ref: 'User' }],
     likesCount: { type: Number, default: 0 },

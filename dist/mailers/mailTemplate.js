@@ -8,7 +8,7 @@ function emailVerificationView(token, timeRemaining) {
     let temp = `
        <div style="max-width: 700px;text-align: center; text-transform: uppercase;
        margin:auto; border: 10px solid #ddd; padding: 50px 20px; font-size: 110%;">
-       <h2 style="color: teal;">Welcome to Kolo Bank</h2>
+       <h2 style="color: teal;">Welcome to medly</h2>
        <p>Please Follow the link by clicking on the button to verify your email
         </p>
         <div style="text-align:center ;">
@@ -41,7 +41,7 @@ function htmlTemplate(otp) {
     let temp = `
       <div style="max-width: 700px;text-align: center;background: #f4f8fd;
        margin:auto; border: 10px solid #ddd; padding: 50px 20px; font-size: 110%;">
-       <h2 style="color: teal;">Welcome to Medly Social media App</h2>
+       <h2 style="color: teal;">Welcome to Medly </h2>
         <div style="text-align:center ; color:black;"><br>
         <h3 style="color: teal;">Hi, Your OTP is ${otp}</h3>
         </div>

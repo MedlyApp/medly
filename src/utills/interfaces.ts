@@ -29,7 +29,7 @@ export interface PostInterface extends Document {
 export interface Comment extends Document {
     postId: ObjectId;
     body: string;
-    createdBy: ObjectId;
+    createdBy: string;
     profileImage: string;
     likes?: string[];
     createdAt: Date;

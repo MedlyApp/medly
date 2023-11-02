@@ -324,7 +324,7 @@ const replyPost = async (req, res) => {
             const reply = new postSchema_1.CommentT({
                 postId: post._id,
                 body: req.body.body,
-                createdBy: user._id,
+                createdBy: user.firstName + ' ' + user.lastName,
                 profileImage: user.profilePicture,
                 image,
                 likes: req.body.likes,
@@ -340,7 +340,7 @@ const replyPost = async (req, res) => {
             const reply = new postSchema_1.CommentT({
                 postId: post._id,
                 body: req.body.body,
-                createdBy: user._id,
+                createdBy: user.firstName + ' ' + user.lastName,
                 profileImage: user.profilePicture,
                 likes: req.body.likes,
                 emoji: req.body.emoji,

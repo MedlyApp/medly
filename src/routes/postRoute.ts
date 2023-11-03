@@ -37,7 +37,7 @@ router.post('/create/post-image', upload.fields([{ name: 'image', maxCount: 5 }]
 router.post('/create/post-audio', upload.fields([{ name: 'audio', maxCount: 5 }]), auth, createAudioPost);
 router.post('/create/post-file', upload.fields([{ name: 'file', maxCount: 5 }]), auth, createAudioPost);
 router.post('/reply/post/:id', upload.fields([{ name: 'image', maxCount: 5 }]), auth, replyPost);
-router.post('/upload/profile-picture', upload.fields([{ name: 'image', maxCount: 1 }]), auth, updateProfile);
+router.post('/upload/profile-picture', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'cover', maxCount: 1 },]), auth, updateProfile);
 router.put('/post-like/:postId', auth, postLike);
 router.put('/post-unlike/:postId', auth, unlikePost);
 router.put('/comment-like/:replyId', auth, replyLike);

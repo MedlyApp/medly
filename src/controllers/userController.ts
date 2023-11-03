@@ -1,10 +1,20 @@
-import { User, UserInterface } from '../models/userSchema'; import { NextFunction, Request, Response } from 'express';
+
+const secret = "FLWSECK_TEST-deb661e185e26c8e7e21ec97013e6a05-X";
+const pub = "FLWPUBK_TEST-661f207a8c29b8711c34bbfa944b5497-X";
+import { Plans } from "../models/planSchema";
+const Flutterwave = require('flutterwave-node-v3');
+const flw = new Flutterwave(`${pub}`, `${secret}`);
+
+import { User, UserInterface } from '../models/userSchema';
+import { NextFunction, Request, Response } from 'express';
+// import { CreatePlans } from "../utills/generalFunct";
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v2 as cloudinary } from "cloudinary";
 import { uploadToCloudinary } from '../utills/newCloud';
+import { Profile } from '../models/userProfile';
 import { userRequest } from '../types/express';
 import { generateLoginToken } from '../utills/helperMethods';
 import { errorResponse, successResponse, successResponseLogin } from '../utills/helperMethods';
@@ -45,6 +55,20 @@ export const userRegistration = async (req: Request, res: Response, next: NextFu
             password: hashPassword,
 
         });
+
+        if (user) {
+            const payloadYearly = {
+                name: "Yearly Plan",
+                interval: "yearly",
+                currency: "NGN",
+            };
+
+            const result = await flw.PaymentPlan.create(payloadYearly);
+            const yearlyPlan = result.data;
+            console.log({ Yearly: yearlyPlan });
+
+        }
+
 
         return successResponseLogin(res, 'Account created successfully', httpStatus.CREATED, user, {});
 
@@ -260,4 +284,159 @@ export const updateProfilePicture = async (req: Request, res: Response, next: Ne
         );
     }
 }
+
+export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const verified = req.headers.token as string;
+        const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+        const { _id } = token;
+        const user = await User.findOne({ _id });
+        if (!user) {
+            return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+        }
+        const update = await Profile.findOneAndUpdate({ userId: user._id },
+            { ...req.body }, { new: true });
+        if (!update) {
+            const create = await Profile.create({
+                ...req.body,
+                userId: user?._id.toString()
+            });
+            return res.status(httpStatus.OK).json({
+                message: 'Profile created successfully', user: create
+            });
+        }
+        return res.status(httpStatus.OK).json({
+            message: 'Profile updated successfully', user: update, profile: user
+        });
+
+    } catch (error) {
+        console.error(error);
+        return errorResponse(
+            res,
+            'An error occurred while updating the profile picture',
+            httpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+}
+
+export const follow = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const verified = req.headers.token as string;
+        const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+        const { _id } = token;
+        const user = await User.findOne({ _id });
+        if (!user) {
+            return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+        }
+
+        const { userId } = req.body;
+        const findUser = await User.findOne({ _id: userId });
+        if (!findUser) {
+            return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+        }
+        const check = findUser.followers.includes(user._id);
+        if (check) {
+            return errorResponse(res, 'You already following the user', httpStatus.CONFLICT);
+        }
+        const update = await User.findByIdAndUpdate(findUser._id,
+            { $push: { followers: user._id } }, { new: true });
+        if (!update) {
+            return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+        }
+
+        if (update) {
+            const follower = await User.findByIdAndUpdate(user._id,
+                { $push: { following: user._id } }, { new: true });
+        }
+        return res.status(httpStatus.OK).json({
+            message: 'Follow successful', user: update
+        });
+
+
+    } catch (error) {
+        console.error(error);
+        return errorResponse(
+            res,
+            'An error occurred while updating the profile picture',
+            httpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+}
+export const unfollow = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const verified = req.headers.token as string;
+        const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+        const { _id } = token;
+        const user = await User.findOne({ _id });
+        if (!user) {
+            return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+        }
+
+        const { userId } = req.body;
+        const findUser = await User.findOne({ _id: userId });
+        if (!findUser) {
+            return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+        }
+        const check = findUser.followers.includes(user._id);
+        if (!check) {
+            return errorResponse(res, 'You have not started following each other', httpStatus.CONFLICT);
+        }
+        const update = await User.findByIdAndUpdate(findUser._id,
+            { $pull: { followers: user._id } }, { new: true });
+
+        await User.findByIdAndUpdate(user._id,
+            { $pull: { following: user._id } }, { new: true });
+
+        if (!update) {
+            return errorResponse(res, 'User cannot be unfollwed', httpStatus.NOT_FOUND);
+        }
+        return res.status(httpStatus.OK).json({
+            message: 'Unfollow successful', user: update
+        });
+
+
+    } catch (error) {
+        console.error(error);
+        return errorResponse(
+            res,
+            'An error occurred while updating the profile picture',
+            httpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+}
+export const getUserProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const verified = req.headers.token as string;
+        const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+        const { _id } = token;
+        const user = await User.findOne({ _id });
+        if (!user) {
+            return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+        }
+        const findProfile = await Profile.findOne({ userId: user._id });
+
+        const allData = {
+            ...user.toJSON(),
+            profile: findProfile
+        }
+        return res.status(httpStatus.OK).json({
+            message: 'User Profile', user: allData
+        });
+
+
+
+    } catch (error) {
+        console.error(error);
+        return errorResponse(
+            res,
+            'An error occurred',
+            httpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+}
+
+
+
+
+
 

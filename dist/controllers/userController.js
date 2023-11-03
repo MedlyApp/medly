@@ -3,12 +3,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateProfilePicture = exports.resetPassword = exports.forgotPassword = exports.userLogin = exports.verifyOtp = exports.getOtp = exports.userRegistration = void 0;
+exports.getUserProfile = exports.unfollow = exports.follow = exports.updateProfile = exports.updateProfilePicture = exports.resetPassword = exports.forgotPassword = exports.userLogin = exports.verifyOtp = exports.getOtp = exports.userRegistration = void 0;
+const secret = "FLWSECK_TEST-deb661e185e26c8e7e21ec97013e6a05-X";
+const pub = "FLWPUBK_TEST-661f207a8c29b8711c34bbfa944b5497-X";
+const Flutterwave = require('flutterwave-node-v3');
+const flw = new Flutterwave(`${pub}`, `${secret}`);
 const userSchema_1 = require("../models/userSchema");
 const http_status_1 = __importDefault(require("http-status"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const newCloud_1 = require("../utills/newCloud");
+const userProfile_1 = require("../models/userProfile");
 const helperMethods_1 = require("../utills/helperMethods");
 const helperMethods_2 = require("../utills/helperMethods");
 const sendMail_1 = __importDefault(require("../mailers/sendMail"));
@@ -34,6 +39,16 @@ const userRegistration = async (req, res, next) => {
             ...registrationData,
             password: hashPassword,
         });
+        if (user) {
+            const payloadYearly = {
+                name: "Yearly Plan",
+                interval: "yearly",
+                currency: "NGN",
+            };
+            const result = await flw.PaymentPlan.create(payloadYearly);
+            const yearlyPlan = result.data;
+            console.log({ Yearly: yearlyPlan });
+        }
         return (0, helperMethods_2.successResponseLogin)(res, 'Account created successfully', http_status_1.default.CREATED, user, {});
     }
     catch (error) {
@@ -200,4 +215,125 @@ const updateProfilePicture = async (req, res, next) => {
     }
 };
 exports.updateProfilePicture = updateProfilePicture;
+const updateProfile = async (req, res, next) => {
+    try {
+        const verified = req.headers.token;
+        const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+        const { _id } = token;
+        const user = await userSchema_1.User.findOne({ _id });
+        if (!user) {
+            return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+        }
+        const update = await userProfile_1.Profile.findOneAndUpdate({ userId: user._id }, { ...req.body }, { new: true });
+        if (!update) {
+            const create = await userProfile_1.Profile.create({
+                ...req.body,
+                userId: user === null || user === void 0 ? void 0 : user._id.toString()
+            });
+            return res.status(http_status_1.default.OK).json({
+                message: 'Profile created successfully', user: create
+            });
+        }
+        return res.status(http_status_1.default.OK).json({
+            message: 'Profile updated successfully', user: update, profile: user
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return (0, helperMethods_2.errorResponse)(res, 'An error occurred while updating the profile picture', http_status_1.default.INTERNAL_SERVER_ERROR);
+    }
+};
+exports.updateProfile = updateProfile;
+const follow = async (req, res, next) => {
+    try {
+        const verified = req.headers.token;
+        const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+        const { _id } = token;
+        const user = await userSchema_1.User.findOne({ _id });
+        if (!user) {
+            return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+        }
+        const { userId } = req.body;
+        const findUser = await userSchema_1.User.findOne({ _id: userId });
+        if (!findUser) {
+            return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+        }
+        const check = findUser.followers.includes(user._id);
+        if (check) {
+            return (0, helperMethods_2.errorResponse)(res, 'You already following the user', http_status_1.default.CONFLICT);
+        }
+        const update = await userSchema_1.User.findByIdAndUpdate(findUser._id, { $push: { followers: user._id } }, { new: true });
+        if (!update) {
+            return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+        }
+        if (update) {
+            const follower = await userSchema_1.User.findByIdAndUpdate(user._id, { $push: { following: user._id } }, { new: true });
+        }
+        return res.status(http_status_1.default.OK).json({
+            message: 'Follow successful', user: update
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return (0, helperMethods_2.errorResponse)(res, 'An error occurred while updating the profile picture', http_status_1.default.INTERNAL_SERVER_ERROR);
+    }
+};
+exports.follow = follow;
+const unfollow = async (req, res, next) => {
+    try {
+        const verified = req.headers.token;
+        const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+        const { _id } = token;
+        const user = await userSchema_1.User.findOne({ _id });
+        if (!user) {
+            return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+        }
+        const { userId } = req.body;
+        const findUser = await userSchema_1.User.findOne({ _id: userId });
+        if (!findUser) {
+            return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+        }
+        const check = findUser.followers.includes(user._id);
+        if (!check) {
+            return (0, helperMethods_2.errorResponse)(res, 'You have not started following each other', http_status_1.default.CONFLICT);
+        }
+        const update = await userSchema_1.User.findByIdAndUpdate(findUser._id, { $pull: { followers: user._id } }, { new: true });
+        await userSchema_1.User.findByIdAndUpdate(user._id, { $pull: { following: user._id } }, { new: true });
+        if (!update) {
+            return (0, helperMethods_2.errorResponse)(res, 'User cannot be unfollwed', http_status_1.default.NOT_FOUND);
+        }
+        return res.status(http_status_1.default.OK).json({
+            message: 'Unfollow successful', user: update
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return (0, helperMethods_2.errorResponse)(res, 'An error occurred while updating the profile picture', http_status_1.default.INTERNAL_SERVER_ERROR);
+    }
+};
+exports.unfollow = unfollow;
+const getUserProfile = async (req, res, next) => {
+    try {
+        const verified = req.headers.token;
+        const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+        const { _id } = token;
+        const user = await userSchema_1.User.findOne({ _id });
+        if (!user) {
+            return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+        }
+        const findProfile = await userProfile_1.Profile.findOne({ userId: user._id });
+        const allData = {
+            ...user.toJSON(),
+            profile: findProfile
+        };
+        return res.status(http_status_1.default.OK).json({
+            message: 'User Profile', user: allData
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return (0, helperMethods_2.errorResponse)(res, 'An error occurred', http_status_1.default.INTERNAL_SERVER_ERROR);
+    }
+};
+exports.getUserProfile = getUserProfile;
 //# sourceMappingURL=userController.js.map

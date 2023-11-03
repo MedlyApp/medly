@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserProfile = exports.unfollow = exports.follow = exports.updateProfile = exports.updateProfilePicture = exports.resetPassword = exports.forgotPassword = exports.userLogin = exports.verifyOtp = exports.getOtp = exports.userRegistration = void 0;
+exports.editUserProfile = exports.getUserProfile = exports.unfollow = exports.follow = exports.updateProfile = exports.updateProfilePicture = exports.resetPassword = exports.forgotPassword = exports.userLogin = exports.verifyOtp = exports.getOtp = exports.userRegistration = void 0;
 const secret = "FLWSECK_TEST-deb661e185e26c8e7e21ec97013e6a05-X";
 const pub = "FLWPUBK_TEST-661f207a8c29b8711c34bbfa944b5497-X";
 const Flutterwave = require('flutterwave-node-v3');
@@ -336,4 +336,96 @@ const getUserProfile = async (req, res, next) => {
     }
 };
 exports.getUserProfile = getUserProfile;
+const editUserProfile = async (req, res, next) => {
+    try {
+        const verified = req.headers.token;
+        const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+        const { _id } = token;
+        const user = await userSchema_1.User.findOne({ _id });
+        if (!user) {
+            return (0, helperMethods_2.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+        }
+        const imageUploadPromises = [];
+        const filesWithImage = req.files;
+        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+            filesWithImage.image.forEach((file) => {
+                const imageUploadPromise = (0, newCloud_1.uploadToCloudinary)(file, 'image');
+                imageUploadPromises.push(imageUploadPromise);
+            });
+        }
+        const imageUrls = await Promise.all(imageUploadPromises);
+        if (imageUrls.length > 0) {
+            user.profilePicture = imageUrls.join(',');
+        }
+        const fieldsToUpdate = [
+            'firstName',
+            'lastName',
+            'email',
+            'phoneNumber',
+            'gender',
+            'bio',
+            'dateOfBirth',
+            'location',
+            'socialLinks',
+        ];
+        fieldsToUpdate.forEach((field) => {
+            if (req.body[field] !== undefined) {
+                user[field] = req.body[field];
+            }
+        });
+        await user.save();
+        return res.status(http_status_1.default.OK).json({
+            message: 'User Profile updated successfully',
+            user
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return (0, helperMethods_2.errorResponse)(res, 'An error occurred', http_status_1.default.INTERNAL_SERVER_ERROR);
+    }
+};
+exports.editUserProfile = editUserProfile;
+// export const editUserProfile = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const verified = req.headers.token as string;
+//         const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+//         const { _id } = token;
+//         const user = await User.findOne({ _id });
+//         if (!user) {
+//             return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+//         }
+//         const imageUploadPromises: Promise<string>[] = [];
+//         const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
+//         if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+//             filesWithImage.image.forEach((file) => {
+//                 const imageUploadPromise = uploadToCloudinary(file, 'image');
+//                 imageUploadPromises.push(imageUploadPromise);
+//             });
+//         }
+//         const imageUrls = await Promise.all(imageUploadPromises);
+//         if (user) {
+//             user.profilePicture = imageUrls.join(',');
+//             user.firstName = req.body.firstName;
+//             user.lastName = req.body.lastName;
+//             user.email = req.body.email;
+//             user.phoneNumber = req.body.phoneNumber;
+//             user.gender = req.body.gender;
+//             user.bio = req.body.bio;
+//             user.dateOfBirth = req.body.dateOfBirth;
+//             user.location = req.body.location;
+//             user.socialLinks = req.body.socialLinks;
+//             user.save();
+//             return res.status(httpStatus.OK).json({
+//                 message: 'User Profile updated successfully', user
+//             });
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         return errorResponse(
+//             res,
+//             'An error occurred',
+//             httpStatus.INTERNAL_SERVER_ERROR
+//         );
+//     }
+// }
 //# sourceMappingURL=userController.js.map

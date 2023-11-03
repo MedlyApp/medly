@@ -12,11 +12,9 @@ const userSchema = new mongoose_1.default.Schema({
     googleRefreshToken: { type: String },
     firstName: {
         type: String,
-        required: true,
     },
     lastName: {
         type: String,
-        required: true,
     },
     socialLinks: {
         facebook: String,
@@ -26,19 +24,16 @@ const userSchema = new mongoose_1.default.Schema({
     },
     email: {
         type: String,
-        required: true,
         trim: true,
         lowercase: true,
     },
     gender: {
         type: String,
-        required: true,
         enum: ['male', 'female', 'custom'],
         default: 'custom',
     },
     phoneNumber: {
         type: String,
-        required: true,
     },
     dateOfBirth: {
         type: Date,

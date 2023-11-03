@@ -15,7 +15,6 @@ import jwt from 'jsonwebtoken';
 import { v2 as cloudinary } from "cloudinary";
 import { uploadToCloudinary } from '../utills/newCloud';
 import { Profile } from '../models/userProfile';
-import { userRequest } from '../types/express';
 import { generateLoginToken } from '../utills/helperMethods';
 import { errorResponse, successResponse, successResponseLogin } from '../utills/helperMethods';
 import mailer from '../mailers/sendMail';
@@ -434,6 +433,119 @@ export const getUserProfile = async (req: Request, res: Response, next: NextFunc
         );
     }
 }
+
+
+export const editUserProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const verified = req.headers.token as string;
+        const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+        const { _id } = token;
+
+        const user = await User.findOne({ _id });
+
+        if (!user) {
+            return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+        }
+
+        const imageUploadPromises: Promise<string>[] = [];
+        const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
+
+        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+            filesWithImage.image.forEach((file) => {
+                const imageUploadPromise = uploadToCloudinary(file, 'image');
+                imageUploadPromises.push(imageUploadPromise);
+            });
+        }
+
+        const imageUrls = await Promise.all(imageUploadPromises);
+
+        if (imageUrls.length > 0) {
+            user.profilePicture = imageUrls.join(',');
+        }
+
+        const fieldsToUpdate: (keyof UserInterface)[] = [
+            'firstName',
+            'lastName',
+            'email',
+            'phoneNumber',
+            'gender',
+            'bio',
+            'dateOfBirth',
+            'location',
+            'socialLinks',
+        ];
+
+        fieldsToUpdate.forEach((field) => {
+            if (req.body[field] !== undefined) {
+                (user as any)[field] = req.body[field];
+            }
+        });
+
+        await user.save();
+
+        return res.status(httpStatus.OK).json({
+            message: 'User Profile updated successfully',
+            user
+        });
+    } catch (error) {
+        console.error(error);
+        return errorResponse(
+            res,
+            'An error occurred',
+            httpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+}
+
+
+// export const editUserProfile = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const verified = req.headers.token as string;
+//         const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+//         const { _id } = token;
+//         const user = await User.findOne({ _id });
+//         if (!user) {
+//             return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+//         }
+//         const imageUploadPromises: Promise<string>[] = [];
+//         const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
+
+//         if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+//             filesWithImage.image.forEach((file) => {
+//                 const imageUploadPromise = uploadToCloudinary(file, 'image');
+//                 imageUploadPromises.push(imageUploadPromise);
+//             });
+//         }
+//         const imageUrls = await Promise.all(imageUploadPromises);
+
+//         if (user) {
+//             user.profilePicture = imageUrls.join(',');
+//             user.firstName = req.body.firstName;
+//             user.lastName = req.body.lastName;
+//             user.email = req.body.email;
+//             user.phoneNumber = req.body.phoneNumber;
+//             user.gender = req.body.gender;
+//             user.bio = req.body.bio;
+//             user.dateOfBirth = req.body.dateOfBirth;
+//             user.location = req.body.location;
+//             user.socialLinks = req.body.socialLinks;
+//             user.save();
+//             return res.status(httpStatus.OK).json({
+//                 message: 'User Profile updated successfully', user
+//             });
+//         }
+
+
+
+//     } catch (error) {
+//         console.error(error);
+//         return errorResponse(
+//             res,
+//             'An error occurred',
+//             httpStatus.INTERNAL_SERVER_ERROR
+//         );
+//     }
+// }
 
 
 

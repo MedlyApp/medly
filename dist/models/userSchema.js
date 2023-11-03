@@ -49,7 +49,10 @@ const userSchema = new mongoose_1.default.Schema({
     },
     profilePicture: {
         type: String,
-        required: true,
+        default: 'https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg?auto=compress&cs=tinysrgb&w=600',
+    },
+    coverPicture: {
+        type: String,
         default: 'https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg?auto=compress&cs=tinysrgb&w=600',
     },
     bio: {
@@ -68,18 +71,30 @@ const userSchema = new mongoose_1.default.Schema({
         default: false,
         required: true,
     },
-    // userType: {
-    //     type: String,
-    //     required: true,
-    //     enum: ['doctor', 'regular', 'admin'],
-    //     default: 'regular',
-    // },
+    followers: [{
+            type: mongoose_1.default.Types.ObjectId, ref: "User",
+            required: true,
+        }],
+    following: [{
+            type: mongoose_1.default.Types.ObjectId, ref: "User",
+            required: true,
+        }],
     role: {
         type: String,
         enum: ['user', 'admin'],
         default: 'user',
     },
 }, {
+    toJSON: {
+        transform(doc, ret) {
+            delete ret.password;
+            delete ret.role;
+            delete ret.isVerified;
+            delete ret.__v;
+            delete ret.updatedAt;
+            delete ret.createdAt;
+        },
+    },
     timestamps: true,
 });
 exports.User = mongoose_1.default.model('User', userSchema);

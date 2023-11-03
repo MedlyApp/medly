@@ -54,3 +54,18 @@ export interface Repost extends Document {
     emoji?: string;
 
 }
+
+export interface PlanInput {
+    organizationId: string;
+    id: number;
+    planDescription: string;
+    displayAmount: number;
+    name: string;
+    amount?: number;
+    interval: string;
+    duration: number;
+    status: string;
+    currency: string;
+    plan_token: string;
+    created_at: Date;
+}

@@ -23,10 +23,13 @@ export interface UserInterface extends Document {
     location?: string;
     socialLinks?: SocialLinks;
     profilePicture?: string;
+    coverPicture: string;
     // userType?: string;
     isVerified?: boolean;
     isLocked?: boolean;
     role?: 'user' | 'admin';
+    followers: string[];
+    following: string[];
 }
 
 const userSchema = new mongoose.Schema<UserInterface>({
@@ -74,7 +77,10 @@ const userSchema = new mongoose.Schema<UserInterface>({
     },
     profilePicture: {
         type: String,
-        required: true,
+        default: 'https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg?auto=compress&cs=tinysrgb&w=600',
+    },
+    coverPicture: {
+        type: String,
         default: 'https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg?auto=compress&cs=tinysrgb&w=600',
     },
     bio: {
@@ -95,20 +101,34 @@ const userSchema = new mongoose.Schema<UserInterface>({
         default: false,
         required: true,
     },
+    followers: [{
+        type: mongoose.Types.ObjectId, ref: "User",
+        required: true,
+    }],
+    following: [{
+        type: mongoose.Types.ObjectId, ref: "User",
+        required: true,
+    }],
 
-    // userType: {
-    //     type: String,
-    //     required: true,
-    //     enum: ['doctor', 'regular', 'admin'],
-    //     default: 'regular',
-    // },
     role: {
         type: String,
         enum: ['user', 'admin'],
         default: 'user',
     },
-}, {
-    timestamps: true,
-});
+},
+    {
+        toJSON: {
+            transform(doc, ret) {
+
+                delete ret.password;
+                delete ret.role;
+                delete ret.isVerified;
+                delete ret.__v;
+                delete ret.updatedAt;
+                delete ret.createdAt;
+            },
+        },
+        timestamps: true,
+    });
 
 export const User = mongoose.model<UserInterface>('User', userSchema);

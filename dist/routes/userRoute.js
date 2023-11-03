@@ -20,5 +20,9 @@ router.post('/login', validation_1.validateLoginUser, userController_1.userLogin
 router.post('/forgot-password', validation_1.validateForgotPassword, userController_1.forgotPassword);
 router.post('/reset-password', validation_1.validateChangePassword, userController_1.resetPassword);
 router.post('/upload-profile-picture', upload.single('image'), userAuth_1.auth, userController_1.updateProfilePicture);
+router.patch('/update-profile', userAuth_1.auth, userController_1.updateProfile);
+router.put('/follow', userAuth_1.auth, userController_1.follow);
+router.put('/unfollow', userAuth_1.auth, userController_1.unfollow);
+router.get('/profile', userAuth_1.auth, userController_1.getUserProfile);
 exports.default = router;
 //# sourceMappingURL=userRoute.js.map

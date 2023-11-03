@@ -288,49 +288,6 @@ export const createFilePost = async (req: Request, res: Response) => {
     }
 };
 
-export const updateProfile = async (req: Request, res: Response) => {
-    try {
-        const verified = req.headers.token as string;
-        const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
-        const { _id } = token;
-
-        const user = await User.findOne({ _id });
-        if (!user) {
-            return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
-        }
-
-        const { content, visibleTo }: PostInterface = req.body;
-        const imageUploadPromises: Promise<string>[] = [];
-        const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
-
-
-        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
-            filesWithImage.image.forEach((file) => {
-                const imageUploadPromise = uploadToCloudinary(file, 'image');
-                imageUploadPromises.push(imageUploadPromise);
-            });
-        }
-
-        try {
-            const imageUrls = await Promise.all(imageUploadPromises);
-            const update = await User.findOne({ _id: user._id });
-            if (update) {
-                update.profilePicture = imageUrls.join(',');
-                await update.save();
-                return res.status(httpStatus.OK).json({ message: 'Profile picture updated successfully', user: update });
-            }
-            return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
-        } catch (error) {
-            console.error(error);
-            return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error creating post' });
-        }
-    } catch (error) {
-        console.error(error);
-        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
-    }
-};
-
-
 
 export const replyPost = async (req: Request, res: Response): Promise<unknown> => {
     try {
@@ -763,4 +720,148 @@ export const getResharePost = async (req: Request, res: Response) => {
     return successResponse(res, 'Post found', httpStatus.OK, reshare);
 
 }
+
+// GET USER PROFILE AND ALL THE POSTS
+
+export const getUserAndPost = async (req: Request, res: Response) => {
+    const verified = req.headers.token as string;
+    const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+    const { _id } = token;
+
+    const user = await User.findOne({ _id });
+    if (!user) {
+        return errorResponse(res, 'User not found', httpStatus.NOT_FOUND);
+    }
+
+    const findUser = await User.findOne({ _id: req.params.id });
+    if (!findUser) {
+        return errorResponse(res, 'The user you are trying to find does not exist', httpStatus.NOT_FOUND);
+    }
+
+    if (findUser) {
+        const findPosts = await Post.find({ userId: findUser._id });
+        if (!findPosts) {
+            return errorResponse(res, 'Post not found', httpStatus.NOT_FOUND);
+        }
+        return successResponse(res, 'Post found', httpStatus.OK, { findUser, findPosts });
+    }
+
+    const { postId } = req.params;
+    const convertId = new mongoose.Types.ObjectId(postId);
+
+    const findPosts = await Post.findOne({ _id: convertId, userId: user._id });
+    if (!findPosts) {
+        return errorResponse(res, 'Post not found', httpStatus.NOT_FOUND);
+    }
+    const reshare = await Post.find({ reshare: findPosts._id });
+    return successResponse(res, 'Post found', httpStatus.OK, reshare);
+
+}
+
+
+// export const updateProfile = async (req: Request, res: Response) => {
+//     try {
+//         const verified = req.headers.token as string;
+//         const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+//         const { _id } = token;
+
+//         const user = await User.findOne({ _id });
+//         if (!user) {
+//             return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+//         }
+
+//         const { content, visibleTo }: PostInterface = req.body;
+//         const imageUploadPromises: Promise<string>[] = [];
+//         const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
+
+
+//         if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+//             filesWithImage.image.forEach((file) => {
+//                 const imageUploadPromise = uploadToCloudinary(file, 'image');
+//                 imageUploadPromises.push(imageUploadPromise);
+//             });
+//         }
+
+//         try {
+//             const imageUrls = await Promise.all(imageUploadPromises);
+//             const update = await User.findOne({ _id: user._id });
+//             if (update) {
+//                 update.profilePicture = imageUrls.join(',');
+//                 await update.save();
+//                 return res.status(httpStatus.OK).json({ message: 'Profile picture updated successfully', user: update });
+//             }
+//             return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+//         } catch (error) {
+//             console.error(error);
+//             return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error creating post' });
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+//     }
+// };
+
+
+export const updateProfile = async (req: Request, res: Response) => {
+    try {
+        const verified = req.headers.token as string;
+        const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+        const { _id } = token;
+
+        const user = await User.findOne({ _id });
+        if (!user) {
+            return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+        }
+
+        const { content, visibleTo }: PostInterface = req.body;
+
+        const imageUploadPromises: Promise<string>[] = [];
+        const coverUploadPromises: Promise<string>[] = [];
+
+        const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
+        const filesWithCover: { cover?: Express.Multer.File[] } = req.files as { cover?: Express.Multer.File[] };
+
+        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+            filesWithImage.image.forEach((file) => {
+                const imageUploadPromise = uploadToCloudinary(file, 'image');
+                imageUploadPromises.push(imageUploadPromise);
+            });
+        }
+
+        if (Array.isArray(filesWithCover.cover) && filesWithCover.cover.length > 0) {
+            filesWithCover.cover.forEach((file) => {
+                const coverUploadPromise = uploadToCloudinary(file, 'image');
+                coverUploadPromises.push(coverUploadPromise);
+            });
+        }
+
+        try {
+            const imageUrls = await Promise.all(imageUploadPromises);
+            const coverUrls = await Promise.all(coverUploadPromises);
+
+            const update = await User.findOne({ _id: user._id });
+            if (update) {
+                if (imageUrls.length > 0) {
+                    update.profilePicture = imageUrls.join(',');
+                }
+                if (coverUrls.length > 0) {
+                    update.coverPicture = coverUrls.join(',');
+                }
+
+                await update.save();
+                return res.status(httpStatus.OK).json({ message: 'Profile picture and/or cover picture updated successfully', user: update });
+            }
+            return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+        } catch (error) {
+            console.error(error);
+            return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error updating profile pictures' });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+    }
+};
+
+
+
 

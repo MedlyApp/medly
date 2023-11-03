@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getResharePost = exports.resharePost = exports.deleteComment = exports.deletePost = exports.editComment = exports.editPost = exports.getSingleComment = exports.getAllComment = exports.getSinglePost = exports.getAllPost = exports.unlikeReply = exports.replyLike = exports.unlikePost = exports.postLike = exports.replyPost = exports.updateProfile = exports.createFilePost = exports.createAudioPost = exports.createImagePost = exports.createVideoPost = exports.createPosts = void 0;
+exports.updateProfile = exports.getUserAndPost = exports.getResharePost = exports.resharePost = exports.deleteComment = exports.deletePost = exports.editComment = exports.editPost = exports.getSingleComment = exports.getAllComment = exports.getSinglePost = exports.getAllPost = exports.unlikeReply = exports.replyLike = exports.unlikePost = exports.postLike = exports.replyPost = exports.createFilePost = exports.createAudioPost = exports.createImagePost = exports.createVideoPost = exports.createPosts = void 0;
 const postSchema_1 = require("../models/postSchema");
 const newCloud_1 = require("../utills/newCloud");
 const userSchema_1 = require("../models/userSchema");
@@ -260,45 +260,6 @@ const createFilePost = async (req, res) => {
     }
 };
 exports.createFilePost = createFilePost;
-const updateProfile = async (req, res) => {
-    try {
-        const verified = req.headers.token;
-        const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
-        const { _id } = token;
-        const user = await userSchema_1.User.findOne({ _id });
-        if (!user) {
-            return res.status(http_status_1.default.NOT_FOUND).json({ message: 'User not found' });
-        }
-        const { content, visibleTo } = req.body;
-        const imageUploadPromises = [];
-        const filesWithImage = req.files;
-        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
-            filesWithImage.image.forEach((file) => {
-                const imageUploadPromise = (0, newCloud_1.uploadToCloudinary)(file, 'image');
-                imageUploadPromises.push(imageUploadPromise);
-            });
-        }
-        try {
-            const imageUrls = await Promise.all(imageUploadPromises);
-            const update = await userSchema_1.User.findOne({ _id: user._id });
-            if (update) {
-                update.profilePicture = imageUrls.join(',');
-                await update.save();
-                return res.status(http_status_1.default.OK).json({ message: 'Profile picture updated successfully', user: update });
-            }
-            return res.status(http_status_1.default.NOT_FOUND).json({ message: 'User not found' });
-        }
-        catch (error) {
-            console.error(error);
-            return res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json({ message: 'Error creating post' });
-        }
-    }
-    catch (error) {
-        console.error(error);
-        return res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
-    }
-};
-exports.updateProfile = updateProfile;
 const replyPost = async (req, res) => {
     var _a, _b;
     try {
@@ -667,4 +628,123 @@ const getResharePost = async (req, res) => {
     return (0, helperMethods_1.successResponse)(res, 'Post found', http_status_1.default.OK, reshare);
 };
 exports.getResharePost = getResharePost;
+// GET USER PROFILE AND ALL THE POSTS
+const getUserAndPost = async (req, res) => {
+    const verified = req.headers.token;
+    const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+    const { _id } = token;
+    const user = await userSchema_1.User.findOne({ _id });
+    if (!user) {
+        return (0, helperMethods_1.errorResponse)(res, 'User not found', http_status_1.default.NOT_FOUND);
+    }
+    const findUser = await userSchema_1.User.findOne({ _id: req.params.id });
+    if (!findUser) {
+        return (0, helperMethods_1.errorResponse)(res, 'The user you are trying to find does not exist', http_status_1.default.NOT_FOUND);
+    }
+    if (findUser) {
+        const findPosts = await postSchema_1.Post.find({ userId: findUser._id });
+        if (!findPosts) {
+            return (0, helperMethods_1.errorResponse)(res, 'Post not found', http_status_1.default.NOT_FOUND);
+        }
+        return (0, helperMethods_1.successResponse)(res, 'Post found', http_status_1.default.OK, { findUser, findPosts });
+    }
+    const { postId } = req.params;
+    const convertId = new mongoose_1.default.Types.ObjectId(postId);
+    const findPosts = await postSchema_1.Post.findOne({ _id: convertId, userId: user._id });
+    if (!findPosts) {
+        return (0, helperMethods_1.errorResponse)(res, 'Post not found', http_status_1.default.NOT_FOUND);
+    }
+    const reshare = await postSchema_1.Post.find({ reshare: findPosts._id });
+    return (0, helperMethods_1.successResponse)(res, 'Post found', http_status_1.default.OK, reshare);
+};
+exports.getUserAndPost = getUserAndPost;
+// export const updateProfile = async (req: Request, res: Response) => {
+//     try {
+//         const verified = req.headers.token as string;
+//         const token = jwt.verify(verified, jwtsecret) as unknown as jwtPayload;
+//         const { _id } = token;
+//         const user = await User.findOne({ _id });
+//         if (!user) {
+//             return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+//         }
+//         const { content, visibleTo }: PostInterface = req.body;
+//         const imageUploadPromises: Promise<string>[] = [];
+//         const filesWithImage: { image?: Express.Multer.File[] } = req.files as { image?: Express.Multer.File[] };
+//         if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+//             filesWithImage.image.forEach((file) => {
+//                 const imageUploadPromise = uploadToCloudinary(file, 'image');
+//                 imageUploadPromises.push(imageUploadPromise);
+//             });
+//         }
+//         try {
+//             const imageUrls = await Promise.all(imageUploadPromises);
+//             const update = await User.findOne({ _id: user._id });
+//             if (update) {
+//                 update.profilePicture = imageUrls.join(',');
+//                 await update.save();
+//                 return res.status(httpStatus.OK).json({ message: 'Profile picture updated successfully', user: update });
+//             }
+//             return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+//         } catch (error) {
+//             console.error(error);
+//             return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error creating post' });
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+//     }
+// };
+const updateProfile = async (req, res) => {
+    try {
+        const verified = req.headers.token;
+        const token = jsonwebtoken_1.default.verify(verified, jwtsecret);
+        const { _id } = token;
+        const user = await userSchema_1.User.findOne({ _id });
+        if (!user) {
+            return res.status(http_status_1.default.NOT_FOUND).json({ message: 'User not found' });
+        }
+        const { content, visibleTo } = req.body;
+        const imageUploadPromises = [];
+        const coverUploadPromises = [];
+        const filesWithImage = req.files;
+        const filesWithCover = req.files;
+        if (Array.isArray(filesWithImage.image) && filesWithImage.image.length > 0) {
+            filesWithImage.image.forEach((file) => {
+                const imageUploadPromise = (0, newCloud_1.uploadToCloudinary)(file, 'image');
+                imageUploadPromises.push(imageUploadPromise);
+            });
+        }
+        if (Array.isArray(filesWithCover.cover) && filesWithCover.cover.length > 0) {
+            filesWithCover.cover.forEach((file) => {
+                const coverUploadPromise = (0, newCloud_1.uploadToCloudinary)(file, 'image');
+                coverUploadPromises.push(coverUploadPromise);
+            });
+        }
+        try {
+            const imageUrls = await Promise.all(imageUploadPromises);
+            const coverUrls = await Promise.all(coverUploadPromises);
+            const update = await userSchema_1.User.findOne({ _id: user._id });
+            if (update) {
+                if (imageUrls.length > 0) {
+                    update.profilePicture = imageUrls.join(',');
+                }
+                if (coverUrls.length > 0) {
+                    update.coverPicture = coverUrls.join(',');
+                }
+                await update.save();
+                return res.status(http_status_1.default.OK).json({ message: 'Profile picture and/or cover picture updated successfully', user: update });
+            }
+            return res.status(http_status_1.default.NOT_FOUND).json({ message: 'User not found' });
+        }
+        catch (error) {
+            console.error(error);
+            return res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json({ message: 'Error updating profile pictures' });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(http_status_1.default.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+    }
+};
+exports.updateProfile = updateProfile;
 //# sourceMappingURL=postController.js.map

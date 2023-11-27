@@ -1,7 +1,6 @@
 import streamifier from 'streamifier';
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
-import { Request } from 'express';
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 cloudinary.config({
@@ -33,18 +32,4 @@ export const uploadToCloudinary = async (file: Express.Multer.File, resourceType
 
         fileStream.pipe(uploadStream);
     });
-};
-
-
-export const handleFileUpload = async (req: Request, user: any) => {
-    const files = req.files as Express.Multer.File[];
-
-    const uploadedUrls = await Promise.all(
-        files.map(async (file) => {
-            const resourceType = file.fieldname === 'image' ? 'auto' : 'video';
-            return uploadToCloudinary(file, resourceType);
-        })
-    );
-
-    return uploadedUrls.filter((url) => url !== '');
 };

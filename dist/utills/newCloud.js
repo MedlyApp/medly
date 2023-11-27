@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleFileUpload = exports.uploadToCloudinary = exports.upload = void 0;
+exports.uploadToCloudinary = exports.upload = void 0;
 const streamifier_1 = __importDefault(require("streamifier"));
 const multer_1 = __importDefault(require("multer"));
 const cloudinary_1 = require("cloudinary");
@@ -35,13 +35,4 @@ const uploadToCloudinary = async (file, resourceType) => {
     });
 };
 exports.uploadToCloudinary = uploadToCloudinary;
-const handleFileUpload = async (req, user) => {
-    const files = req.files;
-    const uploadedUrls = await Promise.all(files.map(async (file) => {
-        const resourceType = file.fieldname === 'image' ? 'auto' : 'video';
-        return (0, exports.uploadToCloudinary)(file, resourceType);
-    }));
-    return uploadedUrls.filter((url) => url !== '');
-};
-exports.handleFileUpload = handleFileUpload;
 //# sourceMappingURL=newCloud.js.map

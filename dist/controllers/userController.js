@@ -4,11 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.editUserProfile = exports.getUserProfile = exports.unfollow = exports.follow = exports.updateProfile = exports.updateProfilePicture = exports.resetPassword = exports.forgotPassword = exports.userLogin = exports.verifyOtp = exports.getOtp = exports.userRegistration = void 0;
-const secret = "FLWSECK_TEST-deb661e185e26c8e7e21ec97013e6a05-X";
-const pub = "FLWPUBK_TEST-661f207a8c29b8711c34bbfa944b5497-X";
-const Flutterwave = require('flutterwave-node-v3');
-const flw = new Flutterwave(`${pub}`, `${secret}`);
 const userSchema_1 = require("../models/userSchema");
+const generalFunct_1 = require("../utills/generalFunct");
 const http_status_1 = __importDefault(require("http-status"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -40,14 +37,7 @@ const userRegistration = async (req, res, next) => {
             password: hashPassword,
         });
         if (user) {
-            const payloadYearly = {
-                name: "Yearly Plan",
-                interval: "yearly",
-                currency: "NGN",
-            };
-            const result = await flw.PaymentPlan.create(payloadYearly);
-            const yearlyPlan = result.data;
-            console.log({ Yearly: yearlyPlan });
+            await (0, generalFunct_1.CreatePlans)(user._id);
         }
         return (0, helperMethods_2.successResponseLogin)(res, 'Account created successfully', http_status_1.default.CREATED, user, {});
     }

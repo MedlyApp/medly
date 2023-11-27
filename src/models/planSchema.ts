@@ -19,4 +19,4 @@ const planSchema = new mongoose.Schema<PlanInput>(
     }
 );
 
-export const Plans = mongoose.model<PlanInput>('Plans', planSchema);
+export const Plan = mongoose.model<PlanInput>('Plan', planSchema);

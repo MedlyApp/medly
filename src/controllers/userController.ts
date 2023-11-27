@@ -1,13 +1,5 @@
-
-const secret = "FLWSECK_TEST-deb661e185e26c8e7e21ec97013e6a05-X";
-const pub = "FLWPUBK_TEST-661f207a8c29b8711c34bbfa944b5497-X";
-import { Plans } from "../models/planSchema";
-const Flutterwave = require('flutterwave-node-v3');
-const flw = new Flutterwave(`${pub}`, `${secret}`);
-
 import { User, UserInterface } from '../models/userSchema';
 import { NextFunction, Request, Response } from 'express';
-// import { CreatePlans } from "../utills/generalFunct";
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import bcrypt from 'bcryptjs';
@@ -54,21 +46,6 @@ export const userRegistration = async (req: Request, res: Response, next: NextFu
             password: hashPassword,
 
         });
-
-        if (user) {
-            const payloadYearly = {
-                name: "Yearly Plan",
-                interval: "yearly",
-                currency: "NGN",
-            };
-
-            const result = await flw.PaymentPlan.create(payloadYearly);
-            const yearlyPlan = result.data;
-            console.log({ Yearly: yearlyPlan });
-
-        }
-
-
         return successResponseLogin(res, 'Account created successfully', httpStatus.CREATED, user, {});
 
     } catch (error) {

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Plans = void 0;
+exports.Plan = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const planSchema = new mongoose_1.default.Schema({
     organizationId: { type: String, required: true, },
@@ -19,5 +19,5 @@ const planSchema = new mongoose_1.default.Schema({
     plan_token: { type: String, required: true },
     created_at: { type: Date, default: Date.now },
 });
-exports.Plans = mongoose_1.default.model('Plans', planSchema);
+exports.Plan = mongoose_1.default.model('Plan', planSchema);
 //# sourceMappingURL=planSchema.js.map
